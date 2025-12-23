@@ -1,0 +1,22 @@
+{
+  "name": "nexora-ecommerce",
+  "version": "1.0.0",
+  "description": "Advanced MERN E-Commerce Platform",
+  "main": "index.js",
+  "scripts": {
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install",
+    "install-all": "npm run install-backend && npm run install-frontend",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd backend && npm run dev",
+    "client": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["ecommerce", "mern", "react", "nodejs", "mongodb"],
+  "author": "NEXORA Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

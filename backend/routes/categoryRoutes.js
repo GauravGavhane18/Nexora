@@ -1,10 +1,9 @@
 import express from 'express';
+import { getCategories, getCategoryBySlug } from '../controllers/categoryController.js';
 
 const router = express.Router();
 
-// Placeholder routes - to be implemented
-router.get('/', (req, res) => {
-  res.json({ success: true, message: 'Category routes working', categories: [] });
-});
+router.get('/', getCategories);
+router.get('/:slug', getCategoryBySlug);
 
 export default router;

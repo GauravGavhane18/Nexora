@@ -7,13 +7,20 @@
     "install-backend": "cd backend && npm install",
     "install-frontend": "cd frontend && npm install",
     "install-all": "npm run install-backend && npm run install-frontend",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "concurrently \"npm run server\" \"npm run client\" \"npm run recommendation\"",
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm run dev",
+    "recommendation": "cd recommendation_engine && python -m uvicorn main:app --reload --port 8000 --host 0.0.0.0",
     "build": "cd frontend && npm run build",
     "start": "cd backend && npm start"
   },
-  "keywords": ["ecommerce", "mern", "react", "nodejs", "mongodb"],
+  "keywords": [
+    "ecommerce",
+    "mern",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
   "author": "NEXORA Team",
   "license": "MIT",
   "devDependencies": {

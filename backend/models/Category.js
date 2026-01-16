@@ -10,7 +10,6 @@ const categorySchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    unique: true,
     lowercase: true
   },
   description: {
@@ -54,7 +53,7 @@ const categorySchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -133,7 +132,7 @@ categorySchema.statics.getBreadcrumb = async function(categoryId) {
 };
 
 // Index for better performance
-categorySchema.index({ slug: 1 });
+categorySchema.index({ slug: 1 }, { unique: true });
 categorySchema.index({ parentCategory: 1 });
 categorySchema.index({ level: 1, sortOrder: 1 });
 categorySchema.index({ isActive: 1, isDeleted: 1 });

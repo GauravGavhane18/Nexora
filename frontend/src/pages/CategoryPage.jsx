@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { FiGrid, FiList, FiFilter, FiChevronRight } from 'react-icons/fi'
+import api from '../services/api' // Added import
 
 const CategoryPage = () => {
   const { slug } = useParams()
@@ -11,38 +12,30 @@ const CategoryPage = () => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Mock category data
-    const mockCategory = {
-      id: 'cat-001',
-      name: 'Electronics',
-      slug: 'electronics',
-      description: 'Discover the latest in electronics and technology',
-      image: '/api/placeholder/1200/300',
-      subCategories: [
-        { id: 'sub-001', name: 'Audio', slug: 'audio', productCount: 45 },
-        { id: 'sub-002', name: 'Computers', slug: 'computers', productCount: 78 },
-        { id: 'sub-003', name: 'Mobile Devices', slug: 'mobile-devices', productCount: 92 },
-        { id: 'sub-004', name: 'Cameras', slug: 'cameras', productCount: 34 }
-      ]
+    const fetchCategoryData = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get(`/categories/${slug}`) // Assuming api.js adds /api/v1 base
+        if (response.data.success) {
+          setCategory(response.data.data.category)
+          // Ensure subCategories is at least an empty array if not present, though current model might not populate it yet
+          const cat = response.data.data.category;
+          if (!cat.subCategories) cat.subCategories = []; // default fallback
+
+          setCategory(cat)
+          setProducts(response.data.data.products || [])
+        }
+      } catch (error) {
+        console.error('Error fetching category:', error)
+        // toast.error('Failed to load category')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    const mockProducts = Array.from({ length: 12 }, (_, i) => ({
-      id: `prod-${i + 1}`,
-      name: `Product ${i + 1}`,
-      slug: `product-${i + 1}`,
-      price: 99.99 + i * 10,
-      originalPrice: 129.99 + i * 10,
-      rating: 4 + Math.random(),
-      reviewCount: Math.floor(Math.random() * 100),
-      image: '/api/placeholder/300/300',
-      inStock: Math.random() > 0.2
-    }))
-
-    setTimeout(() => {
-      setCategory(mockCategory)
-      setProducts(mockProducts)
-      setLoading(false)
-    }, 1000)
+    if (slug) {
+      fetchCategoryData()
+    }
   }, [slug])
 
   if (loading) {
@@ -65,8 +58,8 @@ const CategoryPage = () => {
   return (
     <>
       <Helmet>
-        <title>{category?.name} - NEXORA</title>
-        <meta name="description" content={category?.description} />
+        <title>{category ? `${category.name} - NEXORA` : 'Category - NEXORA'}</title>
+        <meta name="description" content={category?.description || 'Browse products by category'} />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50">
@@ -87,21 +80,23 @@ const CategoryPage = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Sub Categories */}
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Browse by Sub-Category</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-              {category?.subCategories.map((subCat) => (
-                <Link
-                  key={subCat.id}
-                  to={`/category/${category.slug}/${subCat.slug}`}
-                  className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
-                >
-                  <h3 className="font-semibold text-gray-900 mb-1">{subCat.name}</h3>
-                  <p className="text-sm text-gray-500">{subCat.productCount} products</p>
-                </Link>
-              ))}
+          {category?.subCategories?.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">Browse by Sub-Category</h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {category.subCategories.map((subCat) => (
+                  <Link
+                    key={subCat.id}
+                    to={`/category/${category.slug}/${subCat.slug}`}
+                    className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
+                  >
+                    <h3 className="font-semibold text-gray-900 mb-1">{subCat.name}</h3>
+                    <p className="text-sm text-gray-500">{subCat.productCount} products</p>
+                  </Link>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Products Section */}
           <div>
@@ -122,49 +117,53 @@ const CategoryPage = () => {
                     <FiList className="w-5 h-5" />
                   </button>
                 </div>
-                <button className="btn btn-secondary btn-sm">
-                  <FiFilter className="w-4 h-4 mr-2" />
-                  Filters
-                </button>
               </div>
             </div>
 
-            <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' : 'space-y-4'}>
-              {products.map((product) => (
-                <Link
-                  key={product.id}
-                  to={`/products/${product.slug}`}
-                  className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow"
-                >
-                  <div className="aspect-square bg-gray-100">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-medium text-gray-900 mb-1">{product.name}</h3>
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-lg font-bold text-gray-900">${product.price}</span>
-                      <span className="text-sm text-gray-500 line-through">${product.originalPrice}</span>
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600 text-lg">No products found in this category.</p>
+              </div>
+            ) : (
+              <div className={viewMode === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6' : 'space-y-4'}>
+                {products.map((product) => (
+                  <Link
+                    key={product._id}
+                    to={`/products/${product.slug}`}
+                    className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow group"
+                  >
+                    <div className="aspect-square bg-gray-100 overflow-hidden">
+                      <img
+                        src={product.images?.[0]?.url || 'https://via.placeholder.com/300?text=No+Image'}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      />
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center text-sm text-gray-600">
-                        <span className="text-yellow-400">★</span>
-                        <span className="ml-1">{product.rating.toFixed(1)}</span>
-                        <span className="ml-1">({product.reviewCount})</span>
+                    <div className="p-4">
+                      <h3 className="font-medium text-gray-900 mb-1 truncate">{product.name}</h3>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <span className="text-lg font-bold text-gray-900">${product.basePrice}</span>
+                        {product.comparePrice > product.basePrice && (
+                          <span className="text-sm text-gray-500 line-through">${product.comparePrice}</span>
+                        )}
                       </div>
-                      {product.inStock ? (
-                        <span className="text-xs text-green-600 font-medium">In Stock</span>
-                      ) : (
-                        <span className="text-xs text-red-600 font-medium">Out of Stock</span>
-                      )}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <span className="text-yellow-400">★</span>
+                          <span className="ml-1">{(product.ratings?.average || 0).toFixed(1)}</span>
+                          <span className="ml-1">({product.ratings?.count || 0})</span>
+                        </div>
+                        {(product.inventory?.quantity > 0) ? (
+                          <span className="text-xs text-green-600 font-medium">In Stock</span>
+                        ) : (
+                          <span className="text-xs text-red-600 font-medium">Out of Stock</span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

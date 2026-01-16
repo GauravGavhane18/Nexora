@@ -25,7 +25,6 @@ const subscriptionPlanSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    unique: true,
     lowercase: true
   },
   description: {
@@ -184,7 +183,7 @@ subscriptionPlanSchema.methods.getFeatureLimit = function(featureName) {
 };
 
 // Index for better performance
-subscriptionPlanSchema.index({ slug: 1 });
+subscriptionPlanSchema.index({ slug: 1 }, { unique: true });
 subscriptionPlanSchema.index({ tier: 1 });
 subscriptionPlanSchema.index({ isActive: 1, sortOrder: 1 });
 

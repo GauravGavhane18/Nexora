@@ -10,7 +10,8 @@ export const register = createAsyncThunk(
       const response = await authService.register(userData)
       return response.data
     } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Registration failed')
+      console.error('Registration API Error:', error);
+      return rejectWithValue(error.response?.data?.message || error.message || 'Registration failed')
     }
   }
 )
@@ -21,14 +22,19 @@ export const login = createAsyncThunk(
     try {
       const response = await authService.login(credentials)
       const { user, accessToken, refreshToken } = response.data
-      
+
+      // Check if expectedRole is provided and matches
+      if (credentials.expectedRole && user.role !== credentials.expectedRole) {
+        return rejectWithValue(`This login is for ${credentials.expectedRole}s only. Please use the correct login page.`)
+      }
+
       // Store tokens
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
-      
+
       // Initialize socket connection
       initializeSocket(accessToken)
-      
+
       return { user, accessToken, refreshToken }
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || 'Login failed')
@@ -42,14 +48,14 @@ export const logout = createAsyncThunk(
     try {
       const refreshToken = localStorage.getItem('refreshToken')
       await authService.logout({ refreshToken })
-      
+
       // Clear tokens
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
-      
+
       // Disconnect socket
       disconnectSocket()
-      
+
       return null
     } catch (error) {
       // Even if logout fails on server, clear local data
@@ -84,14 +90,14 @@ export const refreshToken = createAsyncThunk(
       if (!refreshToken) {
         throw new Error('No refresh token available')
       }
-      
+
       const response = await authService.refreshToken({ refreshToken })
       const { accessToken, refreshToken: newRefreshToken } = response.data
-      
+
       // Update tokens
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', newRefreshToken)
-      
+
       return { accessToken, refreshToken: newRefreshToken }
     } catch (error) {
       // Clear tokens if refresh fails
@@ -189,7 +195,7 @@ const authSlice = createSlice({
         state.error = action.payload
         state.isAuthenticated = false
       })
-      
+
       // Login
       .addCase(login.pending, (state) => {
         state.loading = true
@@ -208,7 +214,7 @@ const authSlice = createSlice({
         state.error = action.payload
         state.isAuthenticated = false
       })
-      
+
       // Logout
       .addCase(logout.fulfilled, (state) => {
         state.user = null
@@ -219,7 +225,7 @@ const authSlice = createSlice({
         state.error = null
         state.message = 'Logged out successfully'
       })
-      
+
       // Load User
       .addCase(loadUser.pending, (state) => {
         state.loading = true
@@ -237,7 +243,7 @@ const authSlice = createSlice({
         state.refreshToken = null
         state.error = action.payload
       })
-      
+
       // Refresh Token
       .addCase(refreshToken.fulfilled, (state, action) => {
         state.accessToken = action.payload.accessToken
@@ -255,7 +261,7 @@ const authSlice = createSlice({
         localStorage.removeItem('accessToken')
         localStorage.removeItem('refreshToken')
       })
-      
+
       // Forgot Password
       .addCase(forgotPassword.pending, (state) => {
         state.loading = true
@@ -269,7 +275,7 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
-      
+
       // Reset Password
       .addCase(resetPassword.pending, (state) => {
         state.loading = true
@@ -283,7 +289,7 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
-      
+
       // Verify Email
       .addCase(verifyEmail.pending, (state) => {
         state.loading = true

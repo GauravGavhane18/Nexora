@@ -30,7 +30,8 @@
     "react-select": "^5.8.0",
     "react-table": "^7.8.0",
     "recharts": "^2.8.0",
-    "socket.io-client": "^4.7.4"
+    "socket.io-client": "^4.7.4",
+    "@react-google-maps/api": "^2.19.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.37",

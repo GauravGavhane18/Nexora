@@ -7,8 +7,7 @@ const variantSchema = new mongoose.Schema({
   },
   sku: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   price: {
     type: Number,
@@ -59,8 +58,8 @@ const productSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    unique: true,
-    lowercase: true
+    lowercase: true,
+    unique: true
   },
   description: {
     type: String,
@@ -220,7 +219,7 @@ const productSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
   updatedBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -240,7 +239,7 @@ productSchema.virtual('reviews', {
 });
 
 // Virtual for discount percentage
-productSchema.virtual('discountPercentage').get(function() {
+productSchema.virtual('discountPercentage').get(function () {
   if (this.comparePrice && this.comparePrice > this.basePrice) {
     return Math.round(((this.comparePrice - this.basePrice) / this.comparePrice) * 100);
   }
@@ -248,7 +247,7 @@ productSchema.virtual('discountPercentage').get(function() {
 });
 
 // Virtual for stock status
-productSchema.virtual('stockStatus').get(function() {
+productSchema.virtual('stockStatus').get(function () {
   if (!this.inventory.trackQuantity) return 'in_stock';
   if (this.inventory.quantity === 0) return 'out_of_stock';
   if (this.inventory.quantity <= this.inventory.lowStockThreshold) return 'low_stock';
@@ -256,7 +255,7 @@ productSchema.virtual('stockStatus').get(function() {
 });
 
 // Pre-save middleware to generate slug
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function (next) {
   if (this.isModified('name')) {
     this.slug = this.name
       .toLowerCase()
@@ -267,7 +266,7 @@ productSchema.pre('save', function(next) {
 });
 
 // Method to update ratings
-productSchema.methods.updateRatings = async function() {
+productSchema.methods.updateRatings = async function () {
   const Review = mongoose.model('Review');
   const stats = await Review.aggregate([
     { $match: { product: this._id } },
@@ -292,19 +291,19 @@ productSchema.methods.updateRatings = async function() {
 };
 
 // Static method to get featured products
-productSchema.statics.getFeatured = function(limit = 10) {
+productSchema.statics.getFeatured = function (limit = 10) {
   return this.find({
     status: 'published',
     isActive: true,
     isDeleted: false
   })
-  .sort({ salesCount: -1, 'ratings.average': -1 })
-  .limit(limit)
-  .populate('category subCategory seller', 'name firstName lastName');
+    .sort({ salesCount: -1, 'ratings.average': -1 })
+    .limit(limit)
+    .populate('category subCategory seller', 'name firstName lastName');
 };
 
 // Static method to search products
-productSchema.statics.searchProducts = function(query, filters = {}) {
+productSchema.statics.searchProducts = function (query, filters = {}) {
   const searchQuery = {
     status: 'published',
     isActive: true,
@@ -323,7 +322,7 @@ productSchema.statics.searchProducts = function(query, filters = {}) {
 
 // Indexes for better performance
 productSchema.index({ name: 'text', description: 'text', tags: 'text' });
-productSchema.index({ slug: 1 });
+
 productSchema.index({ category: 1, subCategory: 1 });
 productSchema.index({ seller: 1 });
 productSchema.index({ status: 1, isActive: 1, isDeleted: 1 });

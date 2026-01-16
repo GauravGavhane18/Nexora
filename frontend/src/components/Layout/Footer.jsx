@@ -26,9 +26,14 @@ const Footer = () => {
               </div>
               <span className="ml-2 text-2xl font-bold">NEXORA</span>
             </div>
-            <p className="text-gray-400 mb-6 max-w-md">
-              The next generation e-commerce platform with subscription-based access to premium products and services.
+            <p className="text-gray-400 mb-4 max-w-md">
+              India's trusted e-commerce platform offering quality products with fast delivery across the nation.
             </p>
+            <div className="text-gray-400 space-y-2 mb-6">
+              <p>📍 Shop No. 12, Tech Plaza, Pune, Maharashtra 411001</p>
+              <p>📞 +91 7218603915</p>
+              <p>✉️ gavhanegs18@gmail.com</p>
+            </div>
             <div className="flex space-x-4">
               <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-600 transition-colors">
                 <span>f</span>
@@ -41,9 +46,6 @@ const Footer = () => {
               </a>
               <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors">
                 <span>in</span>
-              </a>
-              <a href="#" className="w-10 h-10 bg-gray-800 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors">
-                <span>yt</span>
               </a>
             </div>
           </div>
@@ -67,6 +69,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li><Link to="/contact" className="text-gray-400 hover:text-white transition-colors">Contact Us</Link></li>
               <li><Link to="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
+              <li><Link to="/locations" className="text-gray-400 hover:text-white transition-colors">Find a Store</Link></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Shipping Info</a></li>
               <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Returns & Refunds</a></li>
@@ -102,16 +105,16 @@ const Footer = () => {
             <div className="flex items-center gap-4">
               <span className="text-gray-400 text-sm">We Accept:</span>
               <div className="flex gap-2">
-                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 Visa</span>
-                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 Mastercard</span>
-                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 PayPal</span>
-                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 Stripe</span>
+                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 UPI</span>
+                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 Paytm</span>
+                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💳 Cards</span>
+                <span className="bg-gray-800 px-3 py-1 rounded text-sm">💰 COD</span>
               </div>
             </div>
             <div className="flex items-center gap-4 text-gray-400 text-sm">
-              <span>🔒 Secure Checkout</span>
-              <span>🚚 Free Shipping $50+</span>
-              <span>↩️ 30-Day Returns</span>
+              <span>🔒 100% Secure</span>
+              <span>🚚 Free Shipping ₹999+</span>
+              <span>↩️ 7-Day Returns</span>
             </div>
           </div>
         </div>
@@ -122,7 +125,7 @@ const Footer = () => {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
-              © 2024 NEXORA. All rights reserved. Built with ❤️ using MERN Stack
+              © 2025 NEXORA. All rights reserved. Made in India 🇮🇳 | Founder: Gaurav Gavhane
             </p>
             <div className="flex gap-6 text-sm">
               <a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a>

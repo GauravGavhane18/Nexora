@@ -39,4 +39,4 @@ router.get('/', authorize('admin'), getContactMessages)
 router.put('/:id', authorize('admin'), updateContactMessage)
 router.delete('/:id', authorize('admin'), deleteContactMessage)
 
-export default router
+export default router;

@@ -1,11 +1,10 @@
 import express from 'express';
 import { protect, authorize } from '../middleware/authMiddleware.js';
+import { logInteraction, getAnalytics } from '../controllers/analyticsController.js';
 
 const router = express.Router();
 
-// Placeholder routes - to be implemented
-router.get('/', protect, authorize('admin', 'seller'), (req, res) => {
-  res.json({ success: true, message: 'Analytics routes working' });
-});
+router.post('/interaction', protect, logInteraction);
+router.get('/', protect, authorize('admin', 'seller'), getAnalytics);
 
 export default router;

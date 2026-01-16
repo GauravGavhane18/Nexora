@@ -52,7 +52,6 @@ const orderItemSchema = new mongoose.Schema({
 const orderSchema = new mongoose.Schema({
   orderNumber: {
     type: String,
-    unique: true,
     required: true
   },
   user: {
@@ -131,9 +130,15 @@ const orderSchema = new mongoose.Schema({
     },
     transactionId: String,
     stripePaymentIntentId: String,
+    stripeCustomerId: String,
+    stripeChargeId: String,
     paidAt: Date,
     refundedAt: Date,
-    refundAmount: Number
+    refundAmount: Number,
+    currency: {
+      type: String,
+      default: 'usd'
+    }
   },
   orderStatus: {
     type: String,
@@ -274,7 +279,7 @@ orderSchema.statics.getSellerOrders = function(sellerId, limit = 50) {
 };
 
 // Indexes for better performance
-orderSchema.index({ orderNumber: 1 });
+orderSchema.index({ orderNumber: 1 }, { unique: true });
 orderSchema.index({ user: 1, createdAt: -1 });
 orderSchema.index({ orderStatus: 1 });
 orderSchema.index({ 'payment.status': 1 });

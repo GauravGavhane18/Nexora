@@ -10,7 +10,6 @@ const projectCategorySchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    unique: true,
     lowercase: true
   },
   description: {
@@ -145,7 +144,7 @@ projectCategorySchema.methods.getRelatedProducts = function(limit = 10) {
 };
 
 // Index for better performance
-projectCategorySchema.index({ slug: 1 });
+projectCategorySchema.index({ slug: 1 }, { unique: true });
 projectCategorySchema.index({ targetAudience: 1 });
 projectCategorySchema.index({ difficulty: 1 });
 projectCategorySchema.index({ isActive: 1, isDeleted: 1 });

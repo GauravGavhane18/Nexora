@@ -8,7 +8,7 @@ import { generateTokens, verifyRefreshToken } from '../utils/tokenUtils.js';
 // @access  Public
 export const register = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, role = 'user' } = req.body;
+    const { firstName, lastName, email, password, phone, role = 'user' } = req.body;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -25,6 +25,7 @@ export const register = async (req, res) => {
       lastName,
       email,
       password,
+      phone,
       role
     });
 
@@ -38,16 +39,22 @@ export const register = async (req, res) => {
     await user.save();
 
     // Send verification email
-    const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
-    await sendEmail({
-      to: user.email,
-      subject: 'Welcome to NEXORA - Verify Your Email',
-      template: 'emailVerification',
-      data: {
-        name: user.fullName,
-        verificationUrl
-      }
-    });
+    try {
+      const verificationUrl = `${process.env.CLIENT_URL}/verify-email/${verificationToken}`;
+      await sendEmail({
+        to: user.email,
+        subject: 'Welcome to NEXORA - Verify Your Email',
+        template: 'emailVerification',
+        data: {
+          name: user.fullName,
+          verificationUrl
+        }
+      });
+    } catch (emailError) {
+      // If email fails, delete the user to prevent "zombie" accounts
+      await User.findByIdAndDelete(user._id);
+      throw new Error(`Email sending failed: ${emailError.message}`);
+    }
 
     // Generate tokens
     const { accessToken, refreshToken } = generateTokens(user._id);
@@ -74,9 +81,19 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+
+    // Handle Mongoose validation errors
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(val => val.message);
+      return res.status(400).json({
+        success: false,
+        message: messages.join(', ')
+      });
+    }
+
     res.status(500).json({
       success: false,
-      message: 'Server error during registration'
+      message: error.message || 'Server error during registration'
     });
   }
 };

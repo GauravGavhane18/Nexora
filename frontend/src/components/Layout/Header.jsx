@@ -53,8 +53,10 @@ const Header = () => {
       {/* Top Bar */}
       <div className="bg-gray-900 dark:bg-gray-800 text-white text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <p>🚚 Free shipping on orders over $50!</p>
+          <p>🚚 Free shipping on orders over ₹999!</p>
           <div className="hidden md:flex items-center space-x-4">
+            <span>📞 +91 7218603915</span>
+            <span>|</span>
             <Link to="/track-order" className="hover:text-blue-400">Track Order</Link>
             <span>|</span>
             <Link to="/help" className="hover:text-blue-400">Help</Link>
@@ -64,12 +66,12 @@ const Header = () => {
 
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between py-4">
-          {/* Logo */}
+          {/* Logo - Moved to Left */}
           <Link to="/" className="flex items-center">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-xl">N</span>
             </div>
-            <span className="ml-2 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="ml-3 text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               NEXORA
             </span>
           </Link>

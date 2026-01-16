@@ -2,6 +2,14 @@ import nodemailer from 'nodemailer';
 
 // Create transporter
 const createTransporter = () => {
+  // Check if email is configured
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || 
+      process.env.EMAIL_USER === 'dev@nexora.com' || 
+      process.env.EMAIL_PASS === 'dev_password') {
+    console.warn('⚠️  Email not configured. Using console logging for development.');
+    return null;
+  }
+
   return nodemailer.createTransporter({
     host: process.env.EMAIL_HOST,
     port: process.env.EMAIL_PORT,
@@ -130,6 +138,20 @@ export const sendEmail = async ({ to, subject, template, data, html, text }) => 
   try {
     const transporter = createTransporter();
 
+    // If no transporter (email not configured), log to console in development
+    if (!transporter) {
+      console.log('\n📧 EMAIL (Development Mode - Not Sent):');
+      console.log('To:', to);
+      console.log('Subject:', subject || template);
+      if (template && emailTemplates[template]) {
+        const emailContent = emailTemplates[template](data);
+        console.log('Template:', template);
+        console.log('Data:', JSON.stringify(data, null, 2));
+      }
+      console.log('---\n');
+      return { messageId: 'dev-mode-' + Date.now() };
+    }
+
     let emailContent = {};
 
     if (template && emailTemplates[template]) {
@@ -147,10 +169,15 @@ export const sendEmail = async ({ to, subject, template, data, html, text }) => 
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent:', info.messageId);
+    console.log('✅ Email sent:', info.messageId);
     return info;
   } catch (error) {
-    console.error('Email sending error:', error);
+    console.error('❌ Email sending error:', error.message);
+    // Don't throw error in development - just log it
+    if (process.env.NODE_ENV === 'development') {
+      console.warn('⚠️  Email failed but continuing in development mode');
+      return { messageId: 'dev-error-' + Date.now() };
+    }
     throw error;
   }
 };

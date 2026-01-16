@@ -27,9 +27,14 @@ import TrackOrder from './pages/TrackOrder'
 import Cart from './pages/Cart'
 import Checkout from './pages/Checkout'
 import Wishlist from './pages/Wishlist'
+import Locations from './pages/Locations'
 
 // Auth Pages
 import Login from './pages/Auth/Login'
+import BuyerLogin from './pages/Auth/BuyerLogin'
+import SellerLogin from './pages/Auth/SellerLogin'
+import AdminLogin from './pages/Auth/AdminLogin'
+import RoleSelection from './pages/Auth/RoleSelection'
 import Register from './pages/Auth/Register'
 import ForgotPassword from './pages/Auth/ForgotPassword'
 import ResetPassword from './pages/Auth/ResetPassword'
@@ -77,7 +82,7 @@ function App() {
   useEffect(() => {
     // Initialize theme
     dispatch(initializeTheme())
-    
+
     // Initialize auth
     const token = localStorage.getItem('accessToken')
     if (token) {
@@ -88,8 +93,30 @@ function App() {
 
   return (
     <Routes>
+      {/* Auth Pages - Public */}
+      <Route path="/auth">
+        <Route path="role-selection" element={<RoleSelection />} />
+        <Route path="buyer/login" element={<PublicRoute><BuyerLogin /></PublicRoute>} />
+        <Route path="seller/login" element={<PublicRoute><SellerLogin /></PublicRoute>} />
+        <Route path="admin/login" element={<PublicRoute><AdminLogin /></PublicRoute>} />
+        <Route path="login" element={<PublicRoute><Login /></PublicRoute>} />
+        <Route path="register" element={<PublicRoute><Register /></PublicRoute>} />
+        <Route path="forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+        <Route path="reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+        <Route path="verify-email/:token" element={<VerifyEmail />} />
+      </Route>
+
+      {/* Legacy auth routes */}
+      <Route path="login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="admin/login" element={<PublicRoute><AdminLogin /></PublicRoute>} />
+      <Route path="register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+      <Route path="reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
+      <Route path="verify-email/:token" element={<VerifyEmail />} />
+
+      {/* Main Routes - Public and Protected Mixed */}
       <Route path="/" element={<Layout />}>
-        {/* Public Pages */}
+        {/* Public Routes - No Authentication Required */}
         <Route index element={<Home />} />
         <Route path="products" element={<ProductListing />} />
         <Route path="products/:slug" element={<ProductDetail />} />
@@ -103,18 +130,12 @@ function App() {
         <Route path="payments" element={<Payments />} />
         <Route path="help" element={<Help />} />
         <Route path="track-order" element={<TrackOrder />} />
+        <Route path="locations" element={<Locations />} />
+
+        {/* Protected Routes - Require Authentication */}
         <Route path="cart" element={<Cart />} />
         <Route path="wishlist" element={<Wishlist />} />
-        <Route path="subscription-plans" element={<SubscriptionPlans />} />
-        
-        {/* Auth Pages */}
-        <Route path="login" element={<PublicRoute><Login /></PublicRoute>} />
-        <Route path="register" element={<PublicRoute><Register /></PublicRoute>} />
-        <Route path="forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-        <Route path="reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
-        <Route path="verify-email/:token" element={<VerifyEmail />} />
-
-        {/* Protected User Pages */}
+        <Route path="subscription-plans" element={<ProtectedRoute><SubscriptionPlans /></ProtectedRoute>} />
         <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
         <Route path="dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
         <Route path="orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} />
@@ -135,7 +156,7 @@ function App() {
 
       {/* Admin Routes */}
       <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
-        <Route index element={<AdminDashboard />} />
+        <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="users" element={<AdminUsers />} />
         <Route path="products" element={<AdminProducts />} />
         <Route path="orders" element={<AdminOrders />} />

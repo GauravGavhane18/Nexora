@@ -3,10 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector, useDispatch } from 'react-redux'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
-import { 
-  FiStar, 
-  FiHeart, 
-  FiShare2, 
+import {
+  FiStar,
+  FiHeart,
+  FiShare2,
   FiShoppingCart,
   FiTruck,
   FiShield,
@@ -16,12 +16,15 @@ import {
   FiPlus
 } from 'react-icons/fi'
 import { addToCart } from '../redux/slices/cartSlice'
+import { addToRecentlyViewed } from '../utils/recentlyViewed'
+import api from '../services/api'
+import { getProductRecommendations, logInteraction } from '../services/recommendationService'
 
 const ProductDetail = () => {
   const { slug } = useParams()
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  
+
   const { user } = useSelector((state) => state.auth)
   const [product, setProduct] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
@@ -29,75 +32,58 @@ const ProductDetail = () => {
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [loading, setLoading] = useState(true)
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [recommendations, setRecommendations] = useState([])
 
-  // Mock product data
   useEffect(() => {
-    const mockProduct = {
-      id: 'prod-001',
-      name: 'Premium Wireless Headphones',
-      slug: 'premium-wireless-headphones',
-      description: 'Experience crystal-clear audio with our premium wireless headphones featuring active noise cancellation, 30-hour battery life, and premium comfort design.',
-      price: 199.99,
-      originalPrice: 249.99,
-      discount: 20,
-      rating: 4.5,
-      reviewCount: 128,
-      inStock: true,
-      stockCount: 15,
-      images: [
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600',
-        '/api/placeholder/600/600'
-      ],
-      variants: [
-        { id: 'color-black', type: 'color', name: 'Black', value: '#000000', price: 199.99 },
-        { id: 'color-white', type: 'color', name: 'White', value: '#FFFFFF', price: 199.99 },
-        { id: 'color-blue', type: 'color', name: 'Blue', value: '#3B82F6', price: 209.99 }
-      ],
-      features: [
-        'Active Noise Cancellation',
-        '30-hour battery life',
-        'Quick charge: 5 min = 3 hours',
-        'Premium comfort design',
-        'Bluetooth 5.0 connectivity',
-        'Built-in microphone'
-      ],
-      specifications: {
-        'Driver Size': '40mm',
-        'Frequency Response': '20Hz - 20kHz',
-        'Impedance': '32 ohms',
-        'Weight': '250g',
-        'Connectivity': 'Bluetooth 5.0, 3.5mm jack',
-        'Battery': '30 hours playback'
-      },
-      category: 'Electronics',
-      subCategory: 'Audio',
-      brand: 'NEXORA',
-      sku: 'NX-WH-001'
+    const fetchProduct = async () => {
+      try {
+        setLoading(true)
+        const response = await api.get(`/products/${slug}`)
+        const productData = response.data.data.product || response.data.data
+        setProduct(productData)
+        if (productData.variants && productData.variants.length > 0) {
+          setSelectedVariant(productData.variants[0])
+        }
+        // Track recently viewed
+        addToRecentlyViewed(productData)
+
+        // Log interaction and fetch recommendations
+        if (productData) {
+          const pid = productData._id || productData.id;
+          logInteraction(pid, 'view');
+          getProductRecommendations(pid).then(recs => setRecommendations(recs));
+        }
+
+      } catch (error) {
+        console.error('Error fetching product:', error)
+        toast.error('Product not found')
+        navigate('/products')
+      } finally {
+        setLoading(false)
+      }
     }
 
-    setTimeout(() => {
-      setProduct(mockProduct)
-      setSelectedVariant(mockProduct.variants[0])
-      setLoading(false)
-    }, 1000)
-  }, [slug])
+    if (slug) {
+      fetchProduct()
+    }
+  }, [slug, navigate])
 
   const handleAddToCart = () => {
-    if (!product) return
+    if (!product) return;
 
     const cartItem = {
       id: product.id,
       name: product.name,
       price: selectedVariant?.price || product.price,
-      image: product.images[0],
+      image: product.images?.[0]?.url || product.images?.[0] || 'https://placehold.co/300x300?text=No+Image',
+      category: product.category || '',
       quantity: quantity,
       variant: selectedVariant
-    }
+    };
 
-    dispatch(addToCart(cartItem))
-    toast.success('Added to cart!')
+    console.log('Adding to cart:', cartItem);
+    dispatch(addToCart(cartItem));
+    toast.success('Added to cart!');
   }
 
   const handleBuyNow = () => {
@@ -116,13 +102,12 @@ const ProductDetail = () => {
     return Array.from({ length: 5 }, (_, i) => (
       <FiStar
         key={i}
-        className={`w-4 h-4 ${
-          i < Math.floor(rating)
-            ? 'text-yellow-400 fill-current'
-            : i < rating
+        className={`w-4 h-4 ${i < Math.floor(rating)
+          ? 'text-yellow-400 fill-current'
+          : i < rating
             ? 'text-yellow-400 fill-current opacity-50'
             : 'text-gray-300'
-        }`}
+          }`}
       />
     ))
   }
@@ -167,8 +152,8 @@ const ProductDetail = () => {
   return (
     <>
       <Helmet>
-        <title>{product.name} - NEXORA</title>
-        <meta name="description" content={product.description} />
+        <title>{`${product.name || 'Product'} - NEXORA`}</title>
+        <meta name="description" content={product.description || 'Product Details'} />
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 py-8">
@@ -189,7 +174,7 @@ const ProductDetail = () => {
             <div className="space-y-4">
               <div className="aspect-square bg-white rounded-lg overflow-hidden">
                 <img
-                  src={product.images[selectedImage]}
+                  src={product.images?.[selectedImage]?.url || product.images?.[selectedImage] || 'https://placehold.co/500'}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
@@ -199,12 +184,11 @@ const ProductDetail = () => {
                   <button
                     key={index}
                     onClick={() => setSelectedImage(index)}
-                    className={`aspect-square bg-white rounded-lg overflow-hidden border-2 ${
-                      selectedImage === index ? 'border-primary-500' : 'border-gray-200'
-                    }`}
+                    className={`aspect-square bg-white rounded-lg overflow-hidden border-2 ${selectedImage === index ? 'border-primary-500' : 'border-gray-200'
+                      }`}
                   >
                     <img
-                      src={image}
+                      src={image?.url || image || 'https://placehold.co/100'}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover"
                     />
@@ -223,10 +207,10 @@ const ProductDetail = () => {
               {/* Rating */}
               <div className="flex items-center space-x-2">
                 <div className="flex items-center">
-                  {renderStars(product.rating)}
+                  {renderStars(product.ratings?.average || 0)}
                 </div>
                 <span className="text-sm text-gray-600">
-                  {product.rating} ({product.reviewCount} reviews)
+                  {product.ratings?.average?.toFixed(1) || '0.0'} ({product.ratings?.count || 0} reviews)
                 </span>
               </div>
 
@@ -241,7 +225,7 @@ const ProductDetail = () => {
                       ${product.originalPrice}
                     </span>
                     <span className="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">
-                      {product.discount}% OFF
+                      {product.discount || 0}% OFF
                     </span>
                   </>
                 )}
@@ -256,11 +240,10 @@ const ProductDetail = () => {
                       <button
                         key={variant.id}
                         onClick={() => setSelectedVariant(variant)}
-                        className={`w-8 h-8 rounded-full border-2 ${
-                          selectedVariant?.id === variant.id
-                            ? 'border-primary-500 ring-2 ring-primary-200'
-                            : 'border-gray-300'
-                        }`}
+                        className={`w-8 h-8 rounded-full border-2 ${selectedVariant?.id === variant.id
+                          ? 'border-primary-500 ring-2 ring-primary-200'
+                          : 'border-gray-300'
+                          }`}
                         style={{ backgroundColor: variant.value }}
                         title={variant.name}
                       />
@@ -291,7 +274,7 @@ const ProductDetail = () => {
                     </button>
                   </div>
                   <span className="text-sm text-gray-600">
-                    {product.stockCount} available
+                    {product.inventory?.quantity || 0} available
                   </span>
                 </div>
               </div>
@@ -301,7 +284,7 @@ const ProductDetail = () => {
                 <div className="flex space-x-3">
                   <button
                     onClick={handleAddToCart}
-                    disabled={!product.inStock}
+                    disabled={!product.isActive || (product.inventory?.quantity || 0) <= 0}
                     className="btn btn-secondary flex-1"
                   >
                     <FiShoppingCart className="w-5 h-5 mr-2" />
@@ -309,13 +292,13 @@ const ProductDetail = () => {
                   </button>
                   <button
                     onClick={handleBuyNow}
-                    disabled={!product.inStock}
+                    disabled={!product.isActive || (product.inventory?.quantity || 0) <= 0}
                     className="btn btn-primary flex-1"
                   >
                     Buy Now
                   </button>
                 </div>
-                
+
                 <div className="flex space-x-3">
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
@@ -334,12 +317,12 @@ const ProductDetail = () => {
               <div className="border-t border-gray-200 pt-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Key Features</h3>
                 <ul className="space-y-2">
-                  {product.features.map((feature, index) => (
+                  {product.features?.map((feature, index) => (
                     <li key={index} className="flex items-center text-sm text-gray-600">
                       <FiCheck className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
                       {feature}
                     </li>
-                  ))}
+                  )) || <p className="text-sm text-gray-500">No specific features listed.</p>}
                 </ul>
               </div>
 
@@ -372,27 +355,60 @@ const ProductDetail = () => {
                     Specifications
                   </button>
                   <button className="py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
-                    Reviews ({product.reviewCount})
+                    Reviews ({product.ratings?.count || 0})
                   </button>
                   <button className="py-4 text-sm font-medium text-gray-500 hover:text-gray-700">
                     Shipping & Returns
                   </button>
                 </nav>
               </div>
-              
+
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {Object.entries(product.specifications).map(([key, value]) => (
+                  {product.specifications ? Object.entries(product.specifications).map(([key, value]) => (
                     <div key={key} className="flex justify-between py-2 border-b border-gray-100">
                       <span className="font-medium text-gray-900">{key}</span>
                       <span className="text-gray-600">{value}</span>
                     </div>
-                  ))}
+                  )) : <p className="text-gray-500">No specifications available.</p>}
                 </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Similar Products Recommendation */}
+        {recommendations.length > 0 && (
+          <div className="mt-16 px-4 sm:px-6 lg:px-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Products</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {recommendations.map((rec) => (
+                <div key={rec.product_id} className="group relative bg-white p-4 rounded-lg shadow-sm">
+                  <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
+                    <img
+                      src={rec.image || 'https://placehold.co/300'}
+                      alt={rec.name}
+                      className="h-full w-full object-cover object-center lg:h-full lg:w-full"
+                    />
+                  </div>
+                  <div className="mt-4 flex justify-between">
+                    <div>
+                      <h3 className="text-sm font-medium text-gray-900">
+                        <a href={`/products/${rec.product_id}`}>
+                          <span aria-hidden="true" className="absolute inset-0" />
+                          {rec.name}
+                        </a>
+                      </h3>
+                      <p className="mt-1 text-xs text-green-600 font-medium">{rec.reason}</p>
+                    </div>
+                    <p className="text-sm font-medium text-gray-900">${rec.price}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </>
   )

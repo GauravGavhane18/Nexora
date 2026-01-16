@@ -1,14 +1,15 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { FiSearch } from 'react-icons/fi'
 
 const SearchBar = ({ onClose }) => {
   const [query, setQuery] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = (e) => {
     e.preventDefault()
     if (query.trim()) {
-      console.log('Searching for:', query)
-      // TODO: Implement search functionality
+      navigate(`/products?search=${encodeURIComponent(query)}`)
       if (onClose) onClose()
     }
   }

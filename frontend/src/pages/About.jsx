@@ -3,10 +3,10 @@ import { Link } from 'react-router-dom'
 
 const About = () => {
   const team = [
-    { name: 'John Smith', role: 'CEO & Founder', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop' },
-    { name: 'Sarah Johnson', role: 'CTO', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
-    { name: 'Mike Chen', role: 'Head of Design', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
-    { name: 'Emily Davis', role: 'Marketing Director', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
+    { name: 'Gaurav Gavhane', role: 'Founder & CEO', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop' },
+    { name: 'Priya Sharma', role: 'Chief Technology Officer', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop' },
+    { name: 'Rahul Patel', role: 'Head of Operations', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop' },
+    { name: 'Anjali Desai', role: 'Marketing Director', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop' },
   ]
 
   const stats = [
@@ -49,9 +49,9 @@ const About = () => {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <h2 className="text-3xl font-bold text-gray-900 mb-6">Our Story</h2>
-              <p className="text-gray-600 mb-4">Founded in 2020, NEXORA started with a simple idea: make premium products accessible to everyone through a subscription-based model.</p>
-              <p className="text-gray-600 mb-4">Today, we serve over 50,000 customers worldwide, offering a curated selection of the best electronics, gadgets, and lifestyle products.</p>
-              <p className="text-gray-600">Our commitment to quality, innovation, and customer satisfaction drives everything we do.</p>
+              <p className="text-gray-600 mb-4">Founded in 2023 by Gaurav Gavhane in Pune, Maharashtra, NEXORA started with a vision to make quality products accessible to every Indian household.</p>
+              <p className="text-gray-600 mb-4">Today, we serve over 50,000 customers across India, offering a curated selection of electronics, fashion, groceries, and lifestyle products with fast delivery and excellent customer service.</p>
+              <p className="text-gray-600">Our commitment to quality, affordability, and customer satisfaction drives everything we do. We believe in "Make in India" and support local businesses.</p>
             </div>
             <div className="bg-gradient-to-br from-blue-100 to-purple-100 rounded-2xl p-8">
               <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=500&h=400&fit=crop" alt="Team" className="rounded-xl shadow-lg" />

@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymongo
+pandas
+scikit-learn
+numpy
+python-dotenv
+motor
+python-multipart

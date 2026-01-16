@@ -1,7 +1,17 @@
 import { createSlice } from '@reduxjs/toolkit'
 
+const loadWishlistFromStorage = () => {
+  try {
+    const serialized = localStorage.getItem('wishlist')
+    return serialized ? JSON.parse(serialized) : []
+  } catch (err) {
+    console.error('Error loading wishlist from storage:', err)
+    return []
+  }
+}
+
 const initialState = {
-  items: JSON.parse(localStorage.getItem('wishlist')) || [],
+  items: loadWishlistFromStorage(),
 }
 
 const wishlistSlice = createSlice({

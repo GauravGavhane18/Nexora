@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import toast from 'react-hot-toast'
+import api from '../services/api'
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -16,46 +17,40 @@ const Contact = () => {
     setLoading(true)
     
     try {
-      console.log('Submitting contact form to:', `${import.meta.env.VITE_API_URL}/contact`)
-      console.log('Form data:', formData)
-      
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/contact`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      })
+      const response = await api.post('/contact', formData)
 
-      console.log('Response status:', response.status)
-      const data = await response.json()
-      console.log('Response data:', data)
-
-      if (data.success) {
-        toast.success(data.message)
+      if (response.data.success) {
+        toast.success(response.data.message)
         setFormData({ name: '', email: '', subject: '', message: '' })
       } else {
-        toast.error(data.message || 'Failed to send message')
+        // Show validation errors if present
+        if (response.data.errors && Array.isArray(response.data.errors)) {
+          response.data.errors.forEach(error => {
+            toast.error(`${error.param}: ${error.msg}`)
+          })
+        } else {
+          toast.error(response.data.message || 'Failed to send message')
+        }
       }
     } catch (error) {
       console.error('Contact form error:', error)
-      toast.error('Failed to send message. Please try again.')
+      toast.error(error.response?.data?.message || 'Failed to send message. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   const contactInfo = [
-    { icon: '📍', title: 'Address', info: '123 Tech Street, Silicon Valley, CA 94000' },
-    { icon: '📞', title: 'Phone', info: '+1 (555) 123-4567' },
-    { icon: '✉️', title: 'Email', info: 'support@nexora.com' },
-    { icon: '🕐', title: 'Hours', info: 'Mon-Fri: 9AM - 6PM PST' },
+    { icon: '📍', title: 'Address', info: 'Shop No. 12, Tech Plaza, Pune, Maharashtra 411001, India' },
+    { icon: '📞', title: 'Phone', info: '+91 7218603915' },
+    { icon: '✉️', title: 'Email', info: 'gavhanegs18@gmail.com' },
+    { icon: '🕐', title: 'Hours', info: 'Mon-Sat: 10AM - 7PM IST' },
   ]
 
   const faqs = [
-    { q: 'How long does shipping take?', a: 'Standard shipping takes 3-5 business days. Express shipping is available for 1-2 day delivery.' },
-    { q: 'What is your return policy?', a: 'We offer a 30-day money-back guarantee on all products. Items must be in original condition.' },
-    { q: 'Do you ship internationally?', a: 'Yes! We ship to over 50 countries worldwide. Shipping rates vary by location.' },
+    { q: 'How long does shipping take?', a: 'Standard shipping takes 3-7 business days across India. Express shipping available for metro cities in 1-2 days.' },
+    { q: 'What is your return policy?', a: 'We offer a 7-day return policy on all products. Items must be in original condition with tags intact.' },
+    { q: 'Do you ship to all Indian cities?', a: 'Yes! We ship to all pin codes across India. Free shipping on orders above ₹999.' },
   ]
 
   return (
@@ -87,11 +82,14 @@ const Contact = () => {
                       <input
                         type="text"
                         required
+                        minLength={2}
+                        maxLength={100}
                         value={formData.name}
                         onChange={(e) => setFormData({...formData, name: e.target.value})}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="John Doe"
                       />
+                      <p className="text-xs text-gray-500 mt-1">Minimum 2 characters</p>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
@@ -110,22 +108,28 @@ const Contact = () => {
                     <input
                       type="text"
                       required
+                      minLength={5}
+                      maxLength={200}
                       value={formData.subject}
                       onChange={(e) => setFormData({...formData, subject: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="How can we help?"
                     />
+                    <p className="text-xs text-gray-500 mt-1">Minimum 5 characters</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Message</label>
                     <textarea
                       required
                       rows={5}
+                      minLength={10}
+                      maxLength={1000}
                       value={formData.message}
                       onChange={(e) => setFormData({...formData, message: e.target.value})}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Tell us more about your inquiry..."
                     />
+                    <p className="text-xs text-gray-500 mt-1">Minimum 10 characters ({formData.message.length}/1000)</p>
                   </div>
                   <button
                     type="submit"

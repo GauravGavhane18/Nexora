@@ -26,6 +26,15 @@ import sellerRoutes from './routes/sellerRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import paymentRoutes from './routes/paymentRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import bundleRoutes from './routes/bundleRoutes.js';
+import loyaltyRoutes from './routes/loyaltyRoutes.js';
+import referralRoutes from './routes/referralRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import blogRoutes from './routes/blogRoutes.js';
+import auctionRoutes from './routes/auctionRoutes.js';
+import supportRoutes from './routes/supportRoutes.js';
+import placeholderRoutes from './routes/placeholderRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -56,8 +65,27 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS configuration
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3002"
+];
+
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 
@@ -94,6 +122,15 @@ app.use('/api/v1/seller', sellerRoutes);
 app.use('/api/v1/analytics', analyticsRoutes);
 app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/contact', contactRoutes);
+app.use('/api/v1/notifications', notificationRoutes);
+app.use('/api/v1/bundles', bundleRoutes);
+app.use('/api/v1/loyalty', loyaltyRoutes);
+app.use('/api/v1/referrals', referralRoutes);
+app.use('/api/v1/messages', messageRoutes);
+app.use('/api/v1/blogs', blogRoutes);
+app.use('/api/v1/auctions', auctionRoutes);
+app.use('/api/v1/support', supportRoutes);
+app.use('/api/placeholder', placeholderRoutes);
 
 // Health check endpoint
 app.get('/api/v1/health', (_, res) => {

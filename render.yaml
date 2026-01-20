@@ -1,0 +1,61 @@
+services:
+  # 1. Backend Service (Node.js API)
+  - type: web
+    name: nexora-backend
+    runtime: node
+    region: singapore # or ohio, frankfurt etc.
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false # You must enter this manually in Render dashboard for security
+      - key: JWT_SECRET
+        generateValue: true # Render will auto-generate a secure random secret
+      - key: CLIENT_URL
+        fromService:
+          type: web
+          name: nexora-frontend # Connects to frontend service below
+
+  # 2. AI Recommendation Service (Python)
+  - type: web
+    name: nexora-ai-engine
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: recommendation_engine
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: MONGODB_URI
+        sync: false
+      - key: PORT
+        value: 10000
+
+  # 3. Frontend Service (React/Vite)
+  - type: static
+    name: nexora-frontend
+    region: singapore
+    rootDir: frontend
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: nexora-backend
+          property: url
+      - key: VITE_SOCKET_URL
+        fromService:
+          type: web
+          name: nexora-backend
+          property: url

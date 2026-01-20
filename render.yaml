@@ -1,5 +1,5 @@
 services:
-  # 1. Backend Service (Node.js API)
+  # 1. Backend Service
   - type: web
     name: nexora-backend
     runtime: node
@@ -10,14 +10,12 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 10000
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
         generateValue: true
 
-  # 2. AI Recommendation Service (Python)
+  # 2. AI Service
   - type: web
     name: nexora-ai-engine
     runtime: python
@@ -28,28 +26,17 @@ services:
     envVars:
       - key: MONGODB_URI
         sync: false
-      - key: PORT
-        value: 10000
 
-  # 3. Frontend Service (Served as a Web Service to fix Static issues)
+  # 3. Frontend Service
   - type: web
     name: nexora-frontend
     runtime: node
     plan: free
     rootDir: frontend
-    # We install dependencies, build the app, and then use 'serve' to host the 'dist' folder
     buildCommand: npm install && npm run build
-    startCommand: npx serve -s dist -l 5173 
+    startCommand: npx serve -s dist -l 5173
     envVars:
-      - key: PORT
-        value: 5173
       - key: VITE_API_URL
-        fromService:
-          type: web
-          name: nexora-backend
-          property: url
+        sync: false # You will paste the backend URL here manually
       - key: VITE_SOCKET_URL
-        fromService:
-          type: web
-          name: nexora-backend
-          property: url
+        sync: false # You will paste the backend URL here manually

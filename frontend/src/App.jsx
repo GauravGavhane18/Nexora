@@ -29,6 +29,8 @@ const Cart = lazy(() => import('./pages/Cart'))
 const Checkout = lazy(() => import('./pages/Checkout'))
 const Wishlist = lazy(() => import('./pages/Wishlist'))
 const Locations = lazy(() => import('./pages/Locations'))
+const Auctions = lazy(() => import('./pages/Auction/Auctions'))
+const AuctionDetail = lazy(() => import('./pages/Auction/AuctionDetail'))
 
 // Auth Pages
 const Login = lazy(() => import('./pages/Auth/Login'))
@@ -136,6 +138,8 @@ function App() {
             <Route path="help" element={<Help />} />
             <Route path="track-order" element={<TrackOrder />} />
             <Route path="locations" element={<Locations />} />
+            <Route path="auctions" element={<Auctions />} />
+            <Route path="auctions/:id" element={<AuctionDetail />} />
 
             {/* Protected Routes - Require Authentication */}
             <Route path="cart" element={<Cart />} />

@@ -12,12 +12,12 @@ const ModernHeader = () => {
   const [scrolled, setScrolled] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  
+
   const { isAuthenticated, user } = useSelector((state) => state.auth)
   const { items } = useSelector((state) => state.cart)
   const { items: wishlistItems } = useSelector((state) => state.wishlist)
   const { isDark } = useSelector((state) => state.theme)
-  
+
   const cartItemsCount = items.reduce((total, item) => total + item.quantity, 0)
   const wishlistCount = wishlistItems.length
 
@@ -46,25 +46,25 @@ const ModernHeader = () => {
   const navLinks = [
     { name: 'Home', path: '/', icon: '🏠' },
     { name: 'Products', path: '/products', icon: '🛍️' },
+    { name: 'Auctions', path: '/auctions', icon: '🔨' },
     { name: 'Categories', path: '/categories', icon: '📂' },
     { name: 'Deals', path: '/deals', icon: '🔥' },
     { name: 'New', path: '/new-arrivals', icon: '✨' },
   ]
 
   return (
-    <motion.header 
+    <motion.header
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled 
-          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl' 
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
+          ? 'bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl shadow-2xl'
           : 'bg-white dark:bg-gray-900'
-      }`}
+        }`}
     >
       {/* Top Bar with Gradient */}
       <div className="bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 text-white text-sm py-2">
         <div className="max-w-7xl mx-auto px-4 flex justify-between items-center">
-          <motion.p 
+          <motion.p
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             className="flex items-center gap-2"
@@ -88,7 +88,7 @@ const ModernHeader = () => {
         <div className="flex items-center justify-between py-4">
           {/* Logo with Animation */}
           <Link to="/" className="flex items-center group">
-            <motion.div 
+            <motion.div
               whileHover={{ rotate: 360, scale: 1.1 }}
               transition={{ duration: 0.5 }}
               className="w-12 h-12 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600 rounded-2xl flex items-center justify-center shadow-lg"

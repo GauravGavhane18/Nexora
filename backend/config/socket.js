@@ -6,14 +6,14 @@ export const setupSocketIO = (io) => {
   io.use(async (socket, next) => {
     try {
       const token = socket.handshake.auth.token;
-      
+
       if (!token) {
         return next(new Error('Authentication error'));
       }
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
       const user = await User.findById(decoded.id).select('-password');
-      
+
       if (!user) {
         return next(new Error('User not found'));
       }
@@ -50,6 +50,11 @@ export const setupSocketIO = (io) => {
     // Handle inventory updates
     socket.on('join_product_room', (productId) => {
       socket.join(`product_${productId}`);
+    });
+
+    // Handle auction updates
+    socket.on('join_auction_room', (auctionId) => {
+      socket.join(`auction_${auctionId}`);
     });
 
     // Handle disconnection

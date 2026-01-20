@@ -102,6 +102,12 @@ export const joinProductRoom = (productId) => {
   }
 }
 
+export const joinAuctionRoom = (auctionId) => {
+  if (socket) {
+    socket.emit('join_auction_room', auctionId)
+  }
+}
+
 export const leaveRoom = (roomName) => {
   if (socket) {
     socket.emit('leave_room', roomName)

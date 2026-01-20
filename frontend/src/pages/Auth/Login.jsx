@@ -11,9 +11,9 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  
-  const { loading, error, isAuthenticated } = useSelector((state) => state.auth)
-  
+
+  const { loading, error, isAuthenticated, user } = useSelector((state) => state.auth)
+
   const {
     register,
     handleSubmit,
@@ -21,10 +21,16 @@ const Login = () => {
   } = useForm()
 
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/')
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin/dashboard')
+      } else if (user.role === 'seller') {
+        navigate('/seller')
+      } else {
+        navigate('/')
+      }
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, user, navigate])
 
   useEffect(() => {
     if (error) {
@@ -43,7 +49,7 @@ const Login = () => {
         <title>Sign In - NEXORA</title>
         <meta name="description" content="Sign in to your NEXORA account" />
       </Helmet>
-      
+
       <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div>
@@ -63,7 +69,7 @@ const Login = () => {
               </Link>
             </p>
           </div>
-          
+
           <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
             <div className="space-y-4">
               <div>
@@ -75,6 +81,7 @@ const Login = () => {
                     <FiMail className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    id="email"
                     {...register('email', {
                       required: 'Email is required',
                       pattern: {
@@ -83,6 +90,7 @@ const Login = () => {
                       }
                     })}
                     type="email"
+                    autoComplete="email"
                     className="form-input pl-10"
                     placeholder="Enter your email"
                   />
@@ -101,10 +109,12 @@ const Login = () => {
                     <FiLock className="h-5 w-5 text-gray-400" />
                   </div>
                   <input
+                    id="password"
                     {...register('password', {
                       required: 'Password is required'
                     })}
                     type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
                     className="form-input pl-10 pr-10"
                     placeholder="Enter your password"
                   />
@@ -135,7 +145,7 @@ const Login = () => {
                   className="form-checkbox"
                 />
                 <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-900">
-                  Remember me
+                  Remember me..!
                 </label>
               </div>
 

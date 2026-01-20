@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import api from '../services/api'
 import { getHomeRecommendations } from '../services/recommendationService'
 import { useSelector } from 'react-redux'
+import SkeletonCard from '../components/UI/SkeletonCard'
 
 const Home = () => {
   const dispatch = useDispatch()
@@ -209,9 +210,10 @@ const Home = () => {
               <p className="text-xl text-gray-600">Discover our most popular items</p>
             </div>
             {loading ? (
-              <div className="text-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-600">Loading products...</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[...Array(4)].map((_, index) => (
+                  <SkeletonCard key={index} />
+                ))}
               </div>
             ) : featuredProducts.length === 0 ? (
               <div className="text-center py-12">

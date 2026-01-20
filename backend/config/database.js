@@ -4,12 +4,12 @@ const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI);
 
-    console.log(`📊 MongoDB Connected: ${conn.connection.host}`);
+    console.log(` MongoDB Connected: ${conn.connection.host}`);
 
     // Create indexes for better performance
     await createIndexes();
   } catch (error) {
-    console.error(`❌ Database connection error: ${error.message}`);
+    console.error(` Database connection error: ${error.message}`);
     process.exit(1);
   }
 };
@@ -35,9 +35,9 @@ const createIndexes = async () => {
     await mongoose.connection.db.collection('subscriptions').createIndex({ user: 1 });
     await mongoose.connection.db.collection('subscriptions').createIndex({ status: 1 });
 
-    console.log('📈 Database indexes created successfully');
+    console.log(' Database indexes created successfully');
   } catch (error) {
-    console.error('❌ Error creating indexes:', error.message);
+    console.error(' Error creating indexes:', error.message);
   }
 };
 

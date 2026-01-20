@@ -31,6 +31,7 @@ export const login = createAsyncThunk(
       // Store tokens
       localStorage.setItem('accessToken', accessToken)
       localStorage.setItem('refreshToken', refreshToken)
+      localStorage.setItem('user', JSON.stringify(user))
 
       // Initialize socket connection
       initializeSocket(accessToken)
@@ -52,6 +53,7 @@ export const logout = createAsyncThunk(
       // Clear tokens
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
+      localStorage.removeItem('user')
 
       // Disconnect socket
       disconnectSocket()
@@ -147,7 +149,7 @@ export const verifyEmail = createAsyncThunk(
 
 // Initial state
 const initialState = {
-  user: null,
+  user: JSON.parse(localStorage.getItem('user') || 'null'),
   accessToken: localStorage.getItem('accessToken'),
   refreshToken: localStorage.getItem('refreshToken'),
   isAuthenticated: false,

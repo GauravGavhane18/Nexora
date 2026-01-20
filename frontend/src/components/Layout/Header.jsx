@@ -10,12 +10,12 @@ const Header = () => {
   const [showSearch, setShowSearch] = useState(false)
   const navigate = useNavigate()
   const dispatch = useDispatch()
-  
+
   const { isAuthenticated, user } = useSelector((state) => state.auth)
   const { items } = useSelector((state) => state.cart)
   const { items: wishlistItems } = useSelector((state) => state.wishlist)
   const { isDark } = useSelector((state) => state.theme)
-  
+
   const cartItemsCount = items.reduce((total, item) => total + item.quantity, 0)
   const wishlistCount = wishlistItems.length
 
@@ -152,7 +152,16 @@ const Header = () => {
             {/* Auth Buttons */}
             {isAuthenticated ? (
               <div className="hidden md:flex items-center space-x-3">
-                <Link to="/dashboard" className="text-gray-700 hover:text-blue-600 font-medium">
+                <Link
+                  to={
+                    user?.role === 'admin'
+                      ? '/admin/dashboard'
+                      : user?.role === 'seller'
+                        ? '/seller'
+                        : '/dashboard'
+                  }
+                  className="text-gray-700 hover:text-blue-600 font-medium"
+                >
                   {user?.firstName || 'Dashboard'}
                 </Link>
                 <button
@@ -195,11 +204,14 @@ const Header = () => {
             <form onSubmit={handleSearch} className="flex">
               <input
                 type="text"
+                name="search"
+                id="search-input"
+                autoComplete="off"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search products..."
+                aria-label="Search products"
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                autoFocus
               />
               <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-r-lg hover:bg-blue-700 transition-colors">
                 Search
@@ -231,7 +243,19 @@ const Header = () => {
               <div className="border-t pt-3 mt-3">
                 {isAuthenticated ? (
                   <>
-                    <Link to="/dashboard" className="block text-gray-700 hover:text-blue-600 py-2" onClick={() => setIsMobileMenuOpen(false)}>Dashboard</Link>
+                    <Link
+                      to={
+                        user?.role === 'admin'
+                          ? '/admin/dashboard'
+                          : user?.role === 'seller'
+                            ? '/seller'
+                            : '/dashboard'
+                      }
+                      className="block text-gray-700 hover:text-blue-600 py-2"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      Dashboard
+                    </Link>
                     <button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="text-left text-red-500 py-2 w-full">Logout</button>
                   </>
                 ) : (

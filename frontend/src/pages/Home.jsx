@@ -175,9 +175,9 @@ const Home = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {recommendations.map((rec) => (
-                    <div key={rec.product_id} className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow group">
+                    <div key={rec._id || rec.id || rec.product_id} className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow group">
                       <div className="relative overflow-hidden">
-                        <img src={rec.image || 'https://via.placeholder.com/300?text=No+Image'} alt={rec.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
+                        <img src={rec.image || 'https://placehold.co/300x300?text=No+Image'} alt={rec.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
                         <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
                           {rec.reason}
                         </div>

@@ -19,6 +19,7 @@ import { addToCart } from '../redux/slices/cartSlice'
 import { addToRecentlyViewed } from '../utils/recentlyViewed'
 import api from '../services/api'
 import { getProductRecommendations, logInteraction } from '../services/recommendationService'
+import { trackEvent } from '../services/omnisend'
 
 const ProductDetail = () => {
   const { slug } = useParams()
@@ -28,6 +29,7 @@ const ProductDetail = () => {
   const { user } = useSelector((state) => state.auth)
   const [product, setProduct] = useState(null)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [imageError, setImageError] = useState(false)
   const [quantity, setQuantity] = useState(1)
   const [selectedVariant, setSelectedVariant] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -52,6 +54,16 @@ const ProductDetail = () => {
           const pid = productData._id || productData.id;
           logInteraction(pid, 'view');
           getProductRecommendations(pid).then(recs => setRecommendations(recs));
+
+          // Omnisend Tracking
+          trackEvent('viewed product', {
+            productID: pid,
+            productName: productData.name,
+            productVersion: productData.variants && productData.variants.length ? 'variant' : 'simple',
+            productPrice: productData.price,
+            productUrl: window.location.href,
+            productImage: productData.images?.[0]?.url || productData.images?.[0]
+          });
         }
 
       } catch (error) {
@@ -83,6 +95,18 @@ const ProductDetail = () => {
 
     console.log('Adding to cart:', cartItem);
     dispatch(addToCart(cartItem));
+
+    // Omnisend Tracking
+    trackEvent('added product to cart', {
+      productID: product.id || product._id,
+      productName: product.name,
+      productPrice: selectedVariant?.price || product.price,
+      quantity: quantity,
+      currency: 'USD', // Defaulting to USD for now
+      variantId: selectedVariant?.id,
+      variantTitle: selectedVariant?.name
+    });
+
     toast.success('Added to cart!');
   }
 
@@ -174,16 +198,17 @@ const ProductDetail = () => {
             <div className="space-y-4">
               <div className="aspect-square bg-white rounded-lg overflow-hidden">
                 <img
-                  src={product.images?.[selectedImage]?.url || product.images?.[selectedImage] || 'https://placehold.co/500'}
+                  src={imageError ? 'https://placehold.co/500' : (product.images?.[selectedImage]?.url || product.images?.[selectedImage] || 'https://placehold.co/500')}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
                 />
               </div>
               <div className="grid grid-cols-4 gap-2">
                 {product.images.map((image, index) => (
                   <button
                     key={index}
-                    onClick={() => setSelectedImage(index)}
+                    onClick={() => { setSelectedImage(index); setImageError(false); }}
                     className={`aspect-square bg-white rounded-lg overflow-hidden border-2 ${selectedImage === index ? 'border-primary-500' : 'border-gray-200'
                       }`}
                   >
@@ -191,6 +216,7 @@ const ProductDetail = () => {
                       src={image?.url || image || 'https://placehold.co/100'}
                       alt={`${product.name} ${index + 1}`}
                       className="w-full h-full object-cover"
+                      onError={(e) => { e.target.src = 'https://placehold.co/100'; }}
                     />
                   </button>
                 ))}
@@ -383,10 +409,10 @@ const ProductDetail = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Similar Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {recommendations.map((rec) => (
-                <div key={rec.product_id} className="group relative bg-white p-4 rounded-lg shadow-sm">
+                <div key={rec._id || rec.product_id} className="group relative bg-white p-4 rounded-lg shadow-sm">
                   <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-60">
                     <img
-                      src={rec.image || 'https://placehold.co/300'}
+                      src={rec.image || rec.images?.[0]?.url || rec.images?.[0] || 'https://placehold.co/300'}
                       alt={rec.name}
                       className="h-full w-full object-cover object-center lg:h-full lg:w-full"
                     />
@@ -394,14 +420,14 @@ const ProductDetail = () => {
                   <div className="mt-4 flex justify-between">
                     <div>
                       <h3 className="text-sm font-medium text-gray-900">
-                        <a href={`/products/${rec.product_id}`}>
+                        <a href={`/products/${rec.slug || rec._id || rec.product_id}`}>
                           <span aria-hidden="true" className="absolute inset-0" />
                           {rec.name}
                         </a>
                       </h3>
-                      <p className="mt-1 text-xs text-green-600 font-medium">{rec.reason}</p>
+                      <p className="mt-1 text-xs text-green-600 font-medium">{rec.reason || rec.category?.name || 'Recommended'}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">${rec.price}</p>
+                    <p className="text-sm font-medium text-gray-900">${(rec.basePrice || rec.price)?.toFixed(2)}</p>
                   </div>
                 </div>
               ))}

@@ -37,7 +37,7 @@ export const createOrder = async (req, res) => {
 
     for (const item of items) {
       const product = await Product.findById(item.product);
-      
+
       if (!product) {
         return res.status(404).json({
           success: false,
@@ -67,10 +67,10 @@ export const createOrder = async (req, res) => {
 
     // Calculate shipping (free for orders over $100)
     const shippingCost = subtotal >= 100 ? 0 : 10;
-    
+
     // Calculate tax (10%)
     const tax = subtotal * 0.1;
-    
+
     // Apply promo code discount if any
     let discount = 0;
     if (promoCode) {
@@ -119,6 +119,9 @@ export const createOrder = async (req, res) => {
 // @desc    Confirm order after successful payment
 // @route   PUT /api/v1/orders/:id/confirm-payment
 // @access  Private
+// @desc    Confirm order after successful payment
+// @route   PUT /api/v1/orders/:id/confirm-payment
+// @access  Private
 export const confirmOrderPayment = async (req, res) => {
   try {
     const { paymentIntentId } = req.body;
@@ -138,6 +141,30 @@ export const confirmOrderPayment = async (req, res) => {
       });
     }
 
+    if (order.orderStatus === 'confirmed') {
+      return res.status(400).json({
+        success: false,
+        message: 'Order already confirmed'
+      });
+    }
+
+    // Check availability before finalizing
+    for (const item of order.items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product not found: ${item.name}`
+        });
+      }
+      if (product.inventory.quantity < item.quantity) {
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${product.name}. Please contact support for refund.`
+        });
+      }
+    }
+
     // Update order payment status
     order.payment.status = 'succeeded';
     order.payment.paidAt = new Date();
@@ -145,12 +172,12 @@ export const confirmOrderPayment = async (req, res) => {
 
     // Reduce inventory
     for (const item of order.items) {
-      const product = await Product.findById(item.product);
-      if (product) {
-        product.inventory.quantity -= item.quantity;
-        product.salesCount += item.quantity;
-        await product.save();
-      }
+      await Product.findByIdAndUpdate(item.product, {
+        $inc: {
+          'inventory.quantity': -item.quantity,
+          salesCount: item.quantity
+        }
+      });
     }
 
     await order.save();

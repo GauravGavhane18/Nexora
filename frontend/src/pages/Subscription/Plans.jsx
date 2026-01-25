@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Helmet } from 'react-helmet-async'
 import { FiCheck, FiX } from 'react-icons/fi'
 
 const SubscriptionPlans = () => {
+  const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState('monthly')
 
   const plans = [
@@ -91,14 +92,12 @@ const SubscriptionPlans = () => {
               </span>
               <button
                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  billingCycle === 'yearly' ? 'bg-blue-600' : 'bg-gray-300'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${billingCycle === 'yearly' ? 'bg-blue-600' : 'bg-gray-300'
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${billingCycle === 'yearly' ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                 />
               </button>
               <span className={`text-sm font-medium ${billingCycle === 'yearly' ? 'text-gray-900' : 'text-gray-500'}`}>
@@ -112,20 +111,19 @@ const SubscriptionPlans = () => {
             {plans.map((plan) => (
               <div
                 key={plan.name}
-                className={`bg-white rounded-2xl shadow-lg overflow-hidden ${
-                  plan.popular ? 'ring-2 ring-blue-600 scale-105' : ''
-                }`}
+                className={`bg-white rounded-2xl shadow-lg overflow-hidden ${plan.popular ? 'ring-2 ring-blue-600 scale-105' : ''
+                  }`}
               >
                 {plan.popular && (
                   <div className="bg-blue-600 text-white text-center py-2 text-sm font-medium">
                     Most Popular
                   </div>
                 )}
-                
+
                 <div className="p-8">
                   <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
                   <p className="text-gray-600 mb-6">{plan.description}</p>
-                  
+
                   <div className="mb-6">
                     <span className="text-4xl font-bold text-gray-900">
                       ${billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice}
@@ -135,16 +133,30 @@ const SubscriptionPlans = () => {
                     </span>
                   </div>
 
-                  <Link
-                    to={plan.monthlyPrice === 0 ? '/register' : '/checkout'}
-                    className={`block w-full text-center py-3 px-6 rounded-lg font-semibold transition-colors ${
-                      plan.buttonStyle === 'primary'
-                        ? 'bg-blue-600 text-white hover:bg-blue-700'
-                        : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-                    }`}
+                  <button
+                    onClick={() => {
+                      if (plan.monthlyPrice === 0) {
+                        navigate('/register');
+                      } else {
+                        navigate('/checkout', {
+                          state: {
+                            subscription: {
+                              name: plan.name,
+                              price: billingCycle === 'monthly' ? plan.monthlyPrice : plan.yearlyPrice,
+                              billingCycle,
+                              description: plan.description
+                            }
+                          }
+                        });
+                      }
+                    }}
+                    className={`block w-full text-center py-3 px-6 rounded-lg font-semibold transition-colors ${plan.buttonStyle === 'primary'
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
+                      : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
+                      }`}
                   >
                     {plan.buttonText}
-                  </Link>
+                  </button>
 
                   <ul className="mt-8 space-y-4">
                     {plan.features.map((feature, index) => (

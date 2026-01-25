@@ -14,6 +14,8 @@ services:
         value: mongodb+srv://admin:password%40123@cluster0.2k4cvmj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
       - key: JWT_SECRET
         generateValue: true
+      - key: CLIENT_URL
+        value: https://nexora-frontend.onrender.com # Update this if your frontend URL is different
 
   # 2. AI Service
   - type: web
@@ -37,6 +39,8 @@ services:
     startCommand: npx serve -s dist -l 5173
     envVars:
       - key: VITE_API_URL
-        value: https://nexora-backend.onrender.com/api/v1 # Placeholder - Update after backend deploys
+        value: https://nexora-backend.onrender.com/api/v1
       - key: VITE_SOCKET_URL
-        value: https://nexora-backend.onrender.com # Placeholder - Update after backend deploys
+        value: https://nexora-backend.onrender.com
+      - key: VITE_AI_URL
+        value: https://nexora-ai-engine.onrender.com

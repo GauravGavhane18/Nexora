@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import toast from 'react-hot-toast';
 import { useForm } from 'react-hook-form';
@@ -9,6 +9,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import axios from 'axios';
 import { clearCart } from '../redux/slices/cartSlice';
+import { trackEvent } from '../services/omnisend';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
@@ -31,15 +32,25 @@ const CheckoutForm = () => {
   const [processing, setProcessing] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
   const [paymentIntentId, setPaymentIntentId] = useState('');
-  
+
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  
-  const { items, total, subtotal, tax, shipping } = useSelector((state) => state.cart);
+
+  const subscriptionData = location.state?.subscription;
+
+  const { items, total: cartTotal, subtotal: cartSubtotal, tax: cartTax, shipping: cartShipping } = useSelector((state) => state.cart);
+
+  // Override totals if subscription
+  const total = subscriptionData ? subscriptionData.price : cartTotal;
+  const subtotal = subscriptionData ? subscriptionData.price : cartSubtotal;
+  const tax = subscriptionData ? 0 : cartTax;
+  const shipping = subscriptionData ? 0 : cartShipping;
+
   const { user } = useSelector((state) => state.auth);
-  
+
   const {
     register,
     handleSubmit,
@@ -61,15 +72,27 @@ const CheckoutForm = () => {
   });
 
   useEffect(() => {
-    if (items.length === 0) {
+    if (items.length === 0 && !subscriptionData) {
       navigate('/cart');
+    } else {
+      // Track started checkout
+      trackEvent('started checkout', {
+        value: total,
+        currency: 'USD',
+        lineItems: items.map(item => ({
+          productID: item.id,
+          title: item.name,
+          price: item.price,
+          quantity: item.quantity
+        }))
+      });
     }
-  }, [items, navigate]);
+  }, [items, navigate, subscriptionData, total]);
 
   // Create payment intent when moving to payment step
   const createPaymentIntent = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('accessToken'); // Fix: use accessToken not token
       if (!token) {
         toast.error('Please login to continue');
         navigate('/login');
@@ -82,10 +105,12 @@ const CheckoutForm = () => {
           amount: total,
           currency: 'usd',
           metadata: {
-            items: JSON.stringify(items.map(item => ({
-              product: item.id,
-              quantity: item.quantity
-            })))
+            items: subscriptionData
+              ? JSON.stringify([{ type: 'subscription', ...subscriptionData }])
+              : JSON.stringify(items.map(item => ({
+                product: item.id,
+                quantity: item.quantity
+              })))
           }
         },
         { headers: { Authorization: `Bearer ${token}` } }
@@ -117,9 +142,50 @@ const CheckoutForm = () => {
     setProcessing(true);
 
     try {
-      const token = localStorage.getItem('token');
-      
-      // Confirm payment with Stripe
+      const token = localStorage.getItem('accessToken');
+
+      // 1. Create Pending Order first to validate stock
+      const orderData = {
+        items: subscriptionData ? [] : items.map(item => ({
+          product: item.id,
+          quantity: item.quantity
+        })),
+        type: subscriptionData ? 'subscription' : 'standard',
+        subscriptionDetails: subscriptionData,
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        billingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          street: formData.street,
+          city: formData.city,
+          state: formData.state,
+          zipCode: formData.zipCode,
+          country: formData.country
+        },
+        paymentIntentId: paymentIntentId // Created in Step 2
+      };
+
+      const { data: orderResponse } = await axios.post(
+        `${API_URL}/orders`,
+        orderData,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const orderId = orderResponse.data.order._id;
+
+      // 2. Confirm payment with Stripe
       const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
         payment_method: {
           card: elements.getElement(CardElement),
@@ -138,62 +204,42 @@ const CheckoutForm = () => {
       });
 
       if (error) {
+        // If payment fails, we could optionally cancel the pending order here, 
+        // or let it remain pending/expire.
         throw new Error(error.message);
       }
 
       if (paymentIntent.status === 'succeeded') {
-        // Create order in backend
-        const orderData = {
-          items: items.map(item => ({
-            product: item.id,
-            quantity: item.quantity
-          })),
-          shippingAddress: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            street: formData.street,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            country: formData.country
-          },
-          billingAddress: {
-            firstName: formData.firstName,
-            lastName: formData.lastName,
-            email: formData.email,
-            phone: formData.phone,
-            street: formData.street,
-            city: formData.city,
-            state: formData.state,
-            zipCode: formData.zipCode,
-            country: formData.country
-          },
-          paymentIntentId: paymentIntent.id
-        };
-
-        const { data: orderResponse } = await axios.post(
-          `${API_URL}/orders`,
-          orderData,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-
-        // Confirm payment on backend
+        // 3. Confirm payment on backend (finalize order)
         await axios.put(
-          `${API_URL}/orders/${orderResponse.data.order._id}/confirm-payment`,
+          `${API_URL}/orders/${orderId}/confirm-payment`,
           { paymentIntentId: paymentIntent.id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
         // Clear cart and redirect
+        // Track placed order
+        trackEvent('placed order', {
+          orderID: orderId,
+          value: total,
+          currency: 'USD',
+          lineItems: items.map(item => ({
+            productID: item.id,
+            title: item.name,
+            price: item.price,
+            quantity: item.quantity
+          }))
+        });
+
         dispatch(clearCart());
         toast.success('Order placed successfully!');
-        navigate(`/orders/${orderResponse.data.order._id}`);
+        navigate(`/orders/${orderId}`);
       }
     } catch (error) {
       console.error('Payment error:', error);
-      toast.error(error.message || 'Payment failed. Please try again.');
+      // If error came from axios (e.g. out of stock in step 1)
+      const message = error.response?.data?.message || error.message || 'Payment failed. Please try again.';
+      toast.error(message);
     } finally {
       setProcessing(false);
     }
@@ -236,23 +282,20 @@ const CheckoutForm = () => {
                 {steps.map((stepItem, index) => (
                   <li key={stepItem.id} className="flex items-center">
                     <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${
-                        step >= stepItem.id
-                          ? 'bg-blue-600 border-blue-600 text-white'
-                          : 'border-gray-300 text-gray-500'
-                      }`}
+                      className={`flex items-center justify-center w-10 h-10 rounded-full border-2 ${step >= stepItem.id
+                        ? 'bg-blue-600 border-blue-600 text-white'
+                        : 'border-gray-300 text-gray-500'
+                        }`}
                     >
                       <stepItem.icon className="w-5 h-5" />
                     </div>
-                    <span className={`ml-2 text-sm font-medium ${
-                      step >= stepItem.id ? 'text-blue-600' : 'text-gray-500'
-                    }`}>
+                    <span className={`ml-2 text-sm font-medium ${step >= stepItem.id ? 'text-blue-600' : 'text-gray-500'
+                      }`}>
                       {stepItem.name}
                     </span>
                     {index < steps.length - 1 && (
-                      <div className={`ml-5 w-16 h-0.5 ${
-                        step > stepItem.id ? 'bg-blue-600' : 'bg-gray-300'
-                      }`} />
+                      <div className={`ml-5 w-16 h-0.5 ${step > stepItem.id ? 'bg-blue-600' : 'bg-gray-300'
+                        }`} />
                     )}
                   </li>
                 ))}
@@ -265,10 +308,10 @@ const CheckoutForm = () => {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <form onSubmit={handleSubmit(onSubmit)}>
                 {/* Step 1: Shipping Information */}
-                {step === 1 && (
+                <div className={step === 1 ? 'block' : 'hidden'}>
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Shipping Information</h2>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">First Name *</label>
@@ -280,7 +323,7 @@ const CheckoutForm = () => {
                           <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>
                         )}
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Last Name *</label>
                         <input
@@ -296,7 +339,7 @@ const CheckoutForm = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
                       <input
-                        {...register('email', { 
+                        {...register('email', {
                           required: 'Email is required',
                           pattern: { value: /^\S+@\S+$/i, message: 'Invalid email' }
                         })}
@@ -339,7 +382,7 @@ const CheckoutForm = () => {
                           <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>
                         )}
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">State *</label>
                         <input
@@ -350,7 +393,7 @@ const CheckoutForm = () => {
                           <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>
                         )}
                       </div>
-                      
+
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">ZIP Code *</label>
                         <input
@@ -371,13 +414,13 @@ const CheckoutForm = () => {
                       Continue to Payment
                     </button>
                   </div>
-                )}
+                </div>
 
                 {/* Step 2: Payment Method */}
-                {step === 2 && (
+                <div className={step === 2 ? 'block' : 'hidden'}>
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Payment Information</h2>
-                    
+
                     <div className="p-4 border border-gray-200 rounded-lg">
                       <label className="block text-sm font-medium text-gray-700 mb-3">
                         Card Details
@@ -408,13 +451,13 @@ const CheckoutForm = () => {
                       </button>
                     </div>
                   </div>
-                )}
+                </div>
 
                 {/* Step 3: Review Order */}
-                {step === 3 && (
+                <div className={step === 3 ? 'block' : 'hidden'}>
                   <div className="space-y-6">
                     <h2 className="text-xl font-semibold text-gray-900">Review Your Order</h2>
-                    
+
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-medium text-gray-900 mb-2">Shipping Address</h3>
                       <p className="text-sm text-gray-600">
@@ -453,31 +496,46 @@ const CheckoutForm = () => {
                       </button>
                     </div>
                   </div>
-                )}
+                </div>
               </form>
             </div>
 
             {/* Order Summary */}
             <div className="bg-white rounded-lg shadow-sm p-6 h-fit">
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Order Summary</h2>
-              
+
               <div className="space-y-4 max-h-96 overflow-y-auto">
-                {items.map((item) => (
-                  <div key={item.id} className="flex items-center space-x-4">
-                    <img
-                      src={item.image || '/api/placeholder/60/60'}
-                      alt={item.name}
-                      className="w-15 h-15 object-cover rounded"
-                    />
+                {subscriptionData ? (
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-blue-100 rounded flex items-center justify-center text-blue-600 font-bold text-xl">
+                      {subscriptionData.billingCycle === 'yearly' ? 'YR' : 'MO'}
+                    </div>
                     <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{item.name}</h3>
-                      <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      <h3 className="font-medium text-gray-900">{subscriptionData.name} Plan</h3>
+                      <p className="text-sm text-gray-500">{subscriptionData.description}</p>
                     </div>
                     <span className="font-medium text-gray-900">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${subscriptionData.price.toFixed(2)}
                     </span>
                   </div>
-                ))}
+                ) : (
+                  items.map((item) => (
+                    <div key={item.id} className="flex items-center space-x-4">
+                      <img
+                        src={item.image || '/api/placeholder/60/60'}
+                        alt={item.name}
+                        className="w-15 h-15 object-cover rounded"
+                      />
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900">{item.name}</h3>
+                        <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                      </div>
+                      <span className="font-medium text-gray-900">
+                        ${(item.price * item.quantity).toFixed(2)}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="border-t border-gray-200 mt-6 pt-6 space-y-2">

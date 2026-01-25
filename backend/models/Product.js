@@ -330,4 +330,18 @@ productSchema.index({ 'ratings.average': -1, salesCount: -1 });
 productSchema.index({ basePrice: 1 });
 productSchema.index({ createdAt: -1 });
 
+// Static method to get recommendations
+productSchema.statics.getRecommendations = function (productId, categoryId, limit = 4) {
+  return this.find({
+    _id: { $ne: productId },
+    category: categoryId,
+    status: 'published',
+    isActive: true,
+    isDeleted: false
+  })
+    .limit(limit)
+    .populate('category', 'name slug')
+    .sort({ 'ratings.average': -1, salesCount: -1 });
+};
+
 export default mongoose.model('Product', productSchema);

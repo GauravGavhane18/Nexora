@@ -328,10 +328,10 @@ const Cart = () => {
             <h2 className="text-2xl font-bold text-gray-900 mb-6">You May Also Like</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {recommendations.map((rec) => (
-                <div key={rec.product_id} className="group relative">
+                <div key={rec._id || rec.product_id || rec.id} className="group relative">
                   <div className="aspect-h-1 aspect-w-1 w-full overflow-hidden rounded-md bg-gray-200 lg:aspect-none group-hover:opacity-75 lg:h-40">
                     <img
-                      src={rec.image || 'https://placehold.co/150'}
+                      src={rec.image || rec.images?.[0]?.url || rec.images?.[0] || 'https://placehold.co/150'}
                       alt={rec.name}
                       className="h-full w-full object-cover object-center lg:h-full lg:w-full"
                     />
@@ -339,14 +339,14 @@ const Cart = () => {
                   <div className="mt-4 flex justify-between">
                     <div>
                       <h3 className="text-sm text-gray-700">
-                        <Link to={`/products/${rec.product_id}`}>
+                        <Link to={`/products/${rec.slug || rec._id || rec.product_id}`}>
                           <span aria-hidden="true" className="absolute inset-0" />
                           {rec.name}
                         </Link>
                       </h3>
-                      <p className="mt-1 text-sm text-green-600">{rec.reason}</p>
+                      <p className="mt-1 text-sm text-green-600">{rec.reason || rec.category?.name || 'Recommended'}</p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900">${rec.price}</p>
+                    <p className="text-sm font-medium text-gray-900">${(rec.basePrice || rec.price)?.toFixed(2)}</p>
                   </div>
                 </div>
               ))}

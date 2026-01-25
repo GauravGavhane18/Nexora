@@ -222,3 +222,42 @@ export const deleteProduct = async (req, res) => {
     });
   }
 };
+
+// @desc    Get recommended products
+// @route   GET /api/v1/products/:id/recommendations
+// @access  Public
+export const getRecommendedProducts = async (req, res) => {
+  try {
+    const { id } = req.params;
+    let query;
+
+    // Check if valid ObjectId
+    if (id.match(/^[0-9a-fA-F]{24}$/)) {
+      query = { _id: id };
+    } else {
+      query = { slug: id };
+    }
+
+    const product = await Product.findOne(query);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: 'Product not found'
+      });
+    }
+
+    const products = await Product.getRecommendations(product._id, product.category);
+
+    res.json({
+      success: true,
+      data: products
+    });
+  } catch (error) {
+    console.error('Get recommendations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch recommendations'
+    });
+  }
+};

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import { identifyUser } from '../../services/omnisend'
 
 const Footer = () => {
   const [email, setEmail] = useState('')
@@ -8,6 +9,7 @@ const Footer = () => {
   const handleSubscribe = (e) => {
     e.preventDefault()
     if (email) {
+      identifyUser(email, { source: 'footer_newsletter' });
       toast.success('Thanks for subscribing!')
       setEmail('')
     }

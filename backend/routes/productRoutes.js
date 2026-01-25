@@ -5,13 +5,15 @@ import {
   getProductById,
   createProduct,
   updateProduct,
-  deleteProduct
+  deleteProduct,
+  getRecommendedProducts
 } from '../controllers/productController.js';
 
 const router = express.Router();
 
 // Public routes
 router.get('/', getProducts);
+router.get('/:id/recommendations', getRecommendedProducts);
 router.get('/:id', getProductById);
 
 // Protected routes (Admin/Seller)

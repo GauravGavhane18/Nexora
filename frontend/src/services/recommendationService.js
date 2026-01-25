@@ -1,14 +1,17 @@
-import axios from 'axios';
+import api from './api';
 
-// Python Microservice URL
-const REC_API_URL = 'http://localhost:8000';
+// Python Microservice URL (keep for other things if needed, or remove if unused)
+const REC_API_URL = import.meta.env.VITE_AI_URL || 'http://localhost:8000';
 // Node Backend URL (proxied via /api)
-const BACKEND_API_URL = '/api/v1/analytics';
+// Node Backend URL (proxied via /api)
+const BACKEND_API_URL = '/analytics';
 
 export const getHomeRecommendations = async (userId) => {
     try {
-        const response = await axios.get(`${REC_API_URL}/recommend/home/${userId}`);
-        return response.data.recommendations;
+        // Keeping this as is for now, or fallback to products?
+        // Assuming the user only cared about product pages for now.
+        const response = await api.get(`/products?limit=4`);
+        return response.data.data.products;
     } catch (error) {
         console.error("Failed to fetch home recommendations:", error);
         return [];
@@ -17,8 +20,8 @@ export const getHomeRecommendations = async (userId) => {
 
 export const getProductRecommendations = async (productId) => {
     try {
-        const response = await axios.get(`${REC_API_URL}/recommend/product/${productId}`);
-        return response.data.recommendations;
+        const response = await api.get(`/products/${productId}/recommendations`);
+        return response.data.data;
     } catch (error) {
         console.error("Failed to fetch product recommendations:", error);
         return [];
@@ -30,9 +33,8 @@ export const logInteraction = async (productId, action, metadata = {}) => {
         const token = localStorage.getItem('accessToken');
         if (!token) return; // logged out
 
-        await axios.post(`${BACKEND_API_URL}/interaction`,
-            { productId, action, metadata },
-            { headers: { Authorization: `Bearer ${token}` } }
+        await api.post(`${BACKEND_API_URL}/interaction`,
+            { productId, action, metadata }
         );
     } catch (error) {
         console.error("Failed to log interaction:", error);

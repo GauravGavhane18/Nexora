@@ -79,6 +79,7 @@ const Unauthorized = lazy(() => import('./pages/Unauthorized'))
 import ProtectedRoute from './components/Auth/ProtectedRoute'
 import PublicRoute from './components/Auth/PublicRoute'
 import ScrollToTop from './components/Utils/ScrollToTop'
+import OmnisendHandler from './components/Utils/OmnisendHandler'
 
 function App() {
   const dispatch = useDispatch()
@@ -98,6 +99,7 @@ function App() {
   return (
     <>
       <ScrollToTop />
+      <OmnisendHandler />
       <Suspense fallback={<Loading />}>
         <Routes>
           {/* Auth Pages - Public */}

@@ -1,14 +1,14 @@
 import express from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import compression from 'compression';
-import mongoSanitize from 'express-mongo-sanitize';
-import xss from 'xss-clean';
-import rateLimit from 'express-rate-limit';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import dotenv from 'dotenv';
+import helmet from 'helmet';//Security middleware
+import morgan from 'morgan';//Logging middleware
+import compression from 'compression';//Compression middleware
+import mongoSanitize from 'express-mongo-sanitize';//Sanitize middleware
+import xss from 'xss-clean';//XSS middleware
+import rateLimit from 'express-rate-limit';//Rate limiting middleware
+import { createServer } from 'http';//HTTP server
+import { Server } from 'socket.io';//Socket.IO server
+import dotenv from 'dotenv';//Environment variables
 
 import connectDB from './config/database.js';
 import { errorHandler, notFound } from './middleware/errorMiddleware.js';
@@ -42,12 +42,32 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
+connectDB();
+
+// CORS configuration
+const allowedOrigins = [
+  process.env.CLIENT_URL || "http://localhost:3000",
+  "http://localhost:3001",
+  "http://localhost:3002",
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "http://127.0.0.1:5173",
+  "http://127.0.0.1:3002",
+  "https://nexora-frontend.onrender.com"
+];
+
+if (process.env.ALLOWED_ORIGINS) {
+  const extraOrigins = process.env.ALLOWED_ORIGINS.split(',');
+  allowedOrigins.push(...extraOrigins);
+}
+
 const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"]
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
   }
 });
 
@@ -65,15 +85,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // CORS configuration
-const allowedOrigins = [
-  process.env.CLIENT_URL || "http://localhost:3000",
-  "http://localhost:3001",
-  "http://localhost:3002",
-  "http://localhost:5173",
-  "http://localhost:5174",
-  "http://127.0.0.1:5173",
-  "http://127.0.0.1:3002"
-];
+// CORS configuration moved to top
 
 app.use(cors({
   origin: function (origin, callback) {
@@ -149,6 +161,6 @@ app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 NEXORA Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/v1/health`);
+  console.log(` NEXORA Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
+  console.log(` Health check: http://localhost:${PORT}/api/v1/health`);
 });

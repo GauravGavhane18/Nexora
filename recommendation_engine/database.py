@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from config import MONGODB_URI
 
-client = MongoClient(MONGODB_URI)
+client = MongoClient(MONGODB_URI, serverSelectionTimeoutMS=5000)
 # Parse database name from URI if possible, else default
 try:
     db_name = MONGODB_URI.split("/")[-1].split("?")[0]

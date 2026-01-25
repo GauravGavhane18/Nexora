@@ -24,10 +24,12 @@ services:
     plan: free
     rootDir: recommendation_engine
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port 10000
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: MONGODB_URI
         value: mongodb+srv://admin:password%40123@cluster0.2k4cvmj.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: CLIENT_URL
+        value: https://nexora-frontend.onrender.com
 
   # 3. Frontend Service
   - type: web

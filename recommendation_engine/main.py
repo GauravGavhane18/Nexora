@@ -6,13 +6,20 @@ import uvicorn
 
 app = FastAPI(title="NEXORA Recommendation Engine")
 
+import os
+
 # CORS
 origins = [
     "http://localhost:3000",
     "http://localhost:3002",
     "http://localhost:5001",
     "http://localhost:5173",
+    os.getenv("CLIENT_URL", ""), 
+    "https://nexora-frontend.onrender.com"
 ]
+
+# Filter out empty strings
+origins = [origin for origin in origins if origin]
 
 app.add_middleware(
     CORSMiddleware,
@@ -25,7 +32,14 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     print("Loading data...")
-    engine.load_data()
+    try:
+        engine.load_data()
+        print("Data loaded successfully.")
+    except Exception as e:
+        print(f"CRITICAL ERROR: Failed to load data on startup: {e}")
+        # We don't raise here to allow the app to start (and logs to be visible)
+        # But endpoints heavily relying on data might fail.
+
 
 @app.get("/")
 def read_root():

@@ -8,6 +8,14 @@
 
 ---
 
+## 📺 Watch Demo
+**[▶️ Click Here to Watch the Project Walkthrough](#)
+**"C:\Users\Om Sai\Videos\Captures\MongoDB Atlas IP Fix - Google Chrome 2026-01-27 13-34-47.mp4"
+
+*Don't have time to run it? Check out `DEMO_SCRIPT.md` to see the planned presentation flow.*
+
+---
+
 ##  Overview
 
 NEXORA is designed to demonstrate advanced full-stack capabilities, moving beyond simple CRUD operations to tackle complex real-world e-commerce challenges. It features a microservice-ready architecture with a dedicated Python-based recommendation engine, real-time socket communication for auctions/messaging, and a robust role-based security model.

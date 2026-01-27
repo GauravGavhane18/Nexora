@@ -12,15 +12,15 @@ export const getDashboard = async (req, res) => {
 
     // Get seller's products count
     const totalProducts = await Product.countDocuments({ seller: sellerId });
-    const activeProducts = await Product.countDocuments({ 
-      seller: sellerId, 
+    const activeProducts = await Product.countDocuments({
+      seller: sellerId,
       status: 'published',
-      isActive: true 
+      isActive: true
     });
 
     // Get seller's orders
     const totalOrders = await Order.countDocuments({ 'items.seller': sellerId });
-    const pendingOrders = await Order.countDocuments({ 
+    const pendingOrders = await Order.countDocuments({
       'items.seller': sellerId,
       'items.status': 'pending'
     });
@@ -48,15 +48,53 @@ export const getDashboard = async (req, res) => {
       {
         $group: {
           _id: null,
-          totalRevenue: { 
-            $sum: { 
-              $multiply: ['$items.price', '$items.quantity'] 
-            } 
+          totalRevenue: {
+            $sum: {
+              $multiply: ['$items.price', '$items.quantity']
+            }
           },
           totalCommission: { $sum: '$items.commission' }
         }
       }
     ]);
+
+    // Calculate daily revenue (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const dailySales = await Order.aggregate([
+      {
+        $match: {
+          'items.seller': sellerId,
+          createdAt: { $gte: sevenDaysAgo },
+          orderStatus: { $in: ['delivered', 'completed', 'processing', 'shipped'] } // Include active orders
+        }
+      },
+      { $unwind: '$items' },
+      { $match: { 'items.seller': sellerId } },
+      {
+        $group: {
+          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+          revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } }
+        }
+      },
+      { $sort: { _id: 1 } }
+    ]);
+
+    // Fill in missing days
+    const chartData = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const dayData = dailySales.find(item => item._id === dateStr);
+
+      chartData.push({
+        name: d.toLocaleDateString('en-US', { weekday: 'short' }), // Mon, Tue
+        date: dateStr,
+        revenue: dayData ? dayData.revenue : 0
+      });
+    }
 
     const revenue = revenueData[0] || { totalRevenue: 0, totalCommission: 0 };
     const netRevenue = revenue.totalRevenue - revenue.totalCommission;
@@ -87,6 +125,7 @@ export const getDashboard = async (req, res) => {
           revenue: netRevenue,
           commission: revenue.totalCommission
         },
+        chartData,
         recentOrders,
         lowStockProducts
       }
@@ -108,23 +147,23 @@ export const getProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const { status, search, category } = req.query;
-    
+
     // Build query
     const query = { seller: req.user._id };
-    
+
     if (status) {
       query.status = status;
     }
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     if (category) {
       query.category = category;
     }
@@ -225,14 +264,14 @@ export const createProduct = async (req, res) => {
     });
   } catch (error) {
     console.error('Create product error:', error);
-    
+
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: 'Product with this name already exists'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Error creating product'
@@ -418,16 +457,16 @@ export const getOrders = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const { status, search } = req.query;
-    
+
     // Build query
     const query = { 'items.seller': req.user._id };
-    
+
     if (status) {
       query['items.status'] = status;
     }
-    
+
     if (search) {
       query.orderNumber = { $regex: search, $options: 'i' };
     }
@@ -441,7 +480,7 @@ export const getOrders = async (req, res) => {
     // Filter items to only show seller's items
     const filteredOrders = orders.map(order => ({
       ...order.toObject(),
-      items: order.items.filter(item => 
+      items: order.items.filter(item =>
         item.seller.toString() === req.user._id.toString()
       )
     }));
@@ -537,7 +576,7 @@ export const getAnalytics = async (req, res) => {
   try {
     const sellerId = req.user._id;
     const { period = '30' } = req.query; // days
-    
+
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 
@@ -634,7 +673,7 @@ export const updateProfile = async (req, res) => {
     ];
 
     const updateData = {};
-    
+
     // Filter allowed fields
     Object.keys(req.body).forEach(key => {
       if (allowedFields.includes(key)) {
@@ -658,6 +697,41 @@ export const updateProfile = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error updating profile'
+    });
+  }
+};
+// @desc    Get single order details for seller
+// @route   GET /api/v1/seller/orders/:id
+// @access  Private (Seller)
+export const getOrder = async (req, res) => {
+  try {
+    const order = await Order.findOne({
+      _id: req.params.id,
+      'items.seller': req.user._id
+    }).populate('user', 'firstName lastName email');
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: 'Order not found'
+      });
+    }
+
+    // Filter items to only show seller's items
+    const orderObject = order.toObject();
+    orderObject.items = orderObject.items.filter(item =>
+      item.seller.toString() === req.user._id.toString()
+    );
+
+    res.status(200).json({
+      success: true,
+      data: orderObject
+    });
+  } catch (error) {
+    console.error('Get order error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching order details'
     });
   }
 };

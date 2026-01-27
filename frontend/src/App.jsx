@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, lazy, Suspense } from 'react'
 import Loading from './components/UI/Loading'
 import { useDispatch } from 'react-redux'
@@ -58,8 +58,10 @@ const UserSubscription = lazy(() => import('./pages/User/Subscription'))
 const SellerDashboard = lazy(() => import('./pages/Seller/Dashboard'))
 const SellerProducts = lazy(() => import('./pages/Seller/Products'))
 const SellerOrders = lazy(() => import('./pages/Seller/Orders'))
+const SellerOrderDetail = lazy(() => import('./pages/Seller/OrderDetail'))
 const SellerAnalytics = lazy(() => import('./pages/Seller/Analytics'))
 const SellerProfile = lazy(() => import('./pages/Seller/Profile'))
+const SellerAddProduct = lazy(() => import('./pages/Seller/AddProduct'))
 
 // Admin Pages
 const AdminDashboard = lazy(() => import('./pages/Admin/Dashboard'))
@@ -160,13 +162,17 @@ function App() {
           <Route path="/seller" element={<ProtectedRoute allowedRoles={['seller']}><SellerLayout /></ProtectedRoute>}>
             <Route index element={<SellerDashboard />} />
             <Route path="products" element={<SellerProducts />} />
+            <Route path="products/new" element={<SellerAddProduct />} />
+            <Route path="products/edit/:id" element={<SellerAddProduct />} />
             <Route path="orders" element={<SellerOrders />} />
+            <Route path="orders/:id" element={<SellerOrderDetail />} />
             <Route path="analytics" element={<SellerAnalytics />} />
             <Route path="profile" element={<SellerProfile />} />
           </Route>
 
           {/* Admin Routes */}
           <Route path="/admin" element={<ProtectedRoute allowedRoles={['admin']}><AdminLayout /></ProtectedRoute>}>
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<AdminUsers />} />
             <Route path="products" element={<AdminProducts />} />

@@ -9,12 +9,12 @@ dotenv.config();
 const seedProducts = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('📊 MongoDB Connected');
+    console.log(' MongoDB Connected');
 
     // Get seller user
     const seller = await User.findOne({ role: 'seller' });
     if (!seller) {
-      console.log('❌ No seller found. Please run resetUsers.js first');
+      console.log(' No seller found. Please run resetUsers.js first');
       process.exit(1);
     }
 
@@ -27,7 +27,7 @@ const seedProducts = async () => {
 
     await Category.deleteMany({});
     const createdCategories = await Category.insertMany(categories);
-    console.log('✅ Created categories');
+    console.log(' Created categories');
 
     // Create products
     const products = [
@@ -149,15 +149,15 @@ const seedProducts = async () => {
 
     await Product.deleteMany({});
     await Product.insertMany(products);
-    console.log('✅ Created products');
+    console.log(' Created products');
 
-    console.log('\n🎉 Seed completed successfully!');
-    console.log(`📦 Created ${products.length} products`);
-    console.log(`📁 Created ${categories.length} categories\n`);
+    console.log('\n Seed completed successfully!');
+    console.log(` Created ${products.length} products`);
+    console.log(` Created ${categories.length} categories\n`);
 
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
     process.exit(1);
   }
 };

@@ -4,18 +4,16 @@ import Order from '../models/Order.js';
 import Category from '../models/Category.js';
 import SubscriptionPlan from '../models/SubscriptionPlan.js';
 
-// @desc    Get admin dashboard data
-// @route   GET /api/v1/admin/dashboard
-// @access  Private (Admin)
+
 export const getDashboard = async (req, res) => {
   try {
     // Get user statistics
     const totalUsers = await User.countDocuments({ isDeleted: false });
     const totalSellers = await User.countDocuments({ role: 'seller', isDeleted: false });
-    const pendingSellers = await User.countDocuments({ 
-      role: 'seller', 
+    const pendingSellers = await User.countDocuments({
+      role: 'seller',
       'sellerProfile.isApproved': false,
-      isDeleted: false 
+      isDeleted: false
     });
 
     // Get product statistics
@@ -43,8 +41,8 @@ export const getDashboard = async (req, res) => {
         $group: {
           _id: null,
           totalRevenue: { $sum: '$pricing.total' },
-          totalCommission: { 
-            $sum: { 
+          totalCommission: {
+            $sum: {
               $reduce: {
                 input: '$items',
                 initialValue: 0,
@@ -116,30 +114,28 @@ export const getDashboard = async (req, res) => {
   }
 };
 
-// @desc    Get all users
-// @route   GET /api/v1/admin/users
-// @access  Private (Admin)
+
 export const getUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const { role, status, search } = req.query;
-    
+
     // Build query
     const query = { isDeleted: false };
-    
+
     if (role) {
       query.role = role;
     }
-    
+
     if (status === 'active') {
       query.isActive = true;
     } else if (status === 'inactive') {
       query.isActive = false;
     }
-    
+
     if (search) {
       query.$or = [
         { firstName: { $regex: search, $options: 'i' } },
@@ -177,13 +173,11 @@ export const getUsers = async (req, res) => {
   }
 };
 
-// @desc    Update user status
-// @route   PUT /api/v1/admin/users/:id/status
-// @access  Private (Admin)
+
 export const updateUserStatus = async (req, res) => {
   try {
     const { isActive } = req.body;
-    
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { isActive },
@@ -217,9 +211,9 @@ export const updateUserStatus = async (req, res) => {
 export const updateSellerApproval = async (req, res) => {
   try {
     const { isApproved, rejectionReason } = req.body;
-    
+
     const user = await User.findById(req.params.id);
-    
+
     if (!user || user.role !== 'seller') {
       return res.status(404).json({
         success: false,
@@ -229,7 +223,7 @@ export const updateSellerApproval = async (req, res) => {
 
     user.sellerProfile.isApproved = isApproved;
     user.sellerProfile.approvedAt = isApproved ? new Date() : null;
-    
+
     if (!isApproved && rejectionReason) {
       user.sellerProfile.rejectionReason = rejectionReason;
     }
@@ -260,24 +254,24 @@ export const getProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const { status, category, seller, search } = req.query;
-    
+
     // Build query
     const query = { isDeleted: false };
-    
+
     if (status) {
       query.status = status;
     }
-    
+
     if (category) {
       query.category = category;
     }
-    
+
     if (seller) {
       query.seller = seller;
     }
-    
+
     if (search) {
       query.$or = [
         { name: { $regex: search, $options: 'i' } },
@@ -332,6 +326,17 @@ export const createProductAdmin = async (req, res) => {
     };
 
     const product = await Product.create(productData);
+
+    // Emit socket event
+    req.io.emit('product_created', {
+      product: {
+        _id: product._id,
+        name: product.name,
+        seller: req.user._id,
+        status: product.status,
+        createdAt: product.createdAt
+      }
+    });
 
     res.status(201).json({
       success: true,
@@ -418,15 +423,22 @@ export const deleteProductAdmin = async (req, res) => {
 export const updateProductStatus = async (req, res) => {
   try {
     const { status, rejectionReason } = req.body;
-    
+
     const product = await Product.findByIdAndUpdate(
       req.params.id,
-      { 
+      {
         status,
         ...(status === 'rejected' && rejectionReason && { rejectionReason })
       },
       { new: true, runValidators: true }
     ).populate('seller', 'firstName lastName email');
+
+    if (product) {
+      req.io.emit('product_status_updated', {
+        productId: product._id,
+        status: status
+      });
+    }
 
     if (!product) {
       return res.status(404).json({
@@ -459,22 +471,22 @@ export const getOrders = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
-    
+
     const { status, search, dateFrom, dateTo } = req.query;
-    
+
     // Build query
     const query = {};
-    
+
     if (status) {
       query.orderStatus = status;
     }
-    
+
     if (search) {
       query.$or = [
         { orderNumber: { $regex: search, $options: 'i' } }
       ];
     }
-    
+
     if (dateFrom || dateTo) {
       query.createdAt = {};
       if (dateFrom) query.createdAt.$gte = new Date(dateFrom);
@@ -547,14 +559,14 @@ export const createCategory = async (req, res) => {
     });
   } catch (error) {
     console.error('Create category error:', error);
-    
+
     if (error.code === 11000) {
       return res.status(400).json({
         success: false,
         message: 'Category with this slug already exists'
       });
     }
-    
+
     res.status(500).json({
       success: false,
       message: 'Error creating category'
@@ -647,7 +659,7 @@ export const deleteCategory = async (req, res) => {
 export const getAnalytics = async (req, res) => {
   try {
     const { period = '30' } = req.query; // days
-    
+
     const daysAgo = new Date();
     daysAgo.setDate(daysAgo.getDate() - parseInt(period));
 

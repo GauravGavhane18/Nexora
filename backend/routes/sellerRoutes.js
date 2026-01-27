@@ -1,5 +1,6 @@
 import express from 'express';
 import { protect, authorize, requireApprovedSeller } from '../middleware/authMiddleware.js';
+import { upload } from '../middleware/uploadMiddleware.js';
 import {
   getDashboard,
   getProducts,
@@ -9,6 +10,7 @@ import {
   deleteProduct,
   uploadProductImages,
   getOrders,
+  getOrder,
   updateOrderItemStatus,
   getAnalytics,
   updateProfile
@@ -33,10 +35,11 @@ router.route('/products/:id')
   .put(requireApprovedSeller, updateProduct)
   .delete(requireApprovedSeller, deleteProduct);
 
-router.post('/products/:id/images', requireApprovedSeller, uploadProductImages);
+router.post('/products/:id/images', requireApprovedSeller, upload.array('images', 5), uploadProductImages);
 
 // Orders
 router.get('/orders', getOrders);
+router.get('/orders/:id', getOrder);
 router.put('/orders/:orderId/items/:itemId', updateOrderItemStatus);
 
 // Analytics

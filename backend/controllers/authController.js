@@ -63,6 +63,18 @@ export const register = async (req, res) => {
     user.refreshTokens.push({ token: refreshToken });
     await user.save();
 
+    // Emit socket event for real-time dashboard updates
+    req.io.emit('user_registered', {
+      user: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      }
+    });
+
     res.status(201).json({
       success: true,
       message: 'Registration successful. Please check your email to verify your account.',

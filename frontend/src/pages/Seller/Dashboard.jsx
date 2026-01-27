@@ -29,16 +29,7 @@ const SellerDashboard = () => {
   const [loading, setLoading] = useState(true)
   const { user } = useSelector((state) => state.auth)
 
-  // Mock data for the chart - in a real app, this would come from the API
-  const chartData = [
-    { name: 'Mon', revenue: 4000 },
-    { name: 'Tue', revenue: 3000 },
-    { name: 'Wed', revenue: 2000 },
-    { name: 'Thu', revenue: 2780 },
-    { name: 'Fri', revenue: 1890 },
-    { name: 'Sat', revenue: 2390 },
-    { name: 'Sun', revenue: 3490 },
-  ]
+  // Data comes from API now
 
   useEffect(() => {
     fetchDashboardData()
@@ -174,7 +165,7 @@ const SellerDashboard = () => {
           </div>
           <div className="h-80 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
+              <AreaChart data={dashboardData?.chartData}>
                 <defs>
                   <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1} />

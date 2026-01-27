@@ -8,7 +8,7 @@ export const initializeSocket = (token) => {
     socket.disconnect()
   }
 
-  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
+  socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001', {
     auth: {
       token: token
     },

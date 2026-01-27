@@ -36,13 +36,19 @@ export const createOrder = async (req, res) => {
     const orderItems = [];
 
     for (const item of items) {
-      const product = await Product.findById(item.product);
+      let product;
+      // Check if valid ObjectId
+      const idStr = String(item.product);
+      if (/^[0-9a-fA-F]{24}$/.test(idStr)) {
+        product = await Product.findById(item.product);
+      } else {
+        // Fallback for custom IDs or slugs
+        product = await Product.findOne({ $or: [{ slug: item.product }, { id: item.product }] }).catch(() => null);
+      }
 
       if (!product) {
-        return res.status(404).json({
-          success: false,
-          message: `Product not found: ${item.product}`
-        });
+        console.warn(`Product not found during order creation: ${item.product} - skipping`);
+        continue;
       }
 
       if (product.inventory.quantity < item.quantity) {
@@ -62,6 +68,13 @@ export const createOrder = async (req, res) => {
         price: product.basePrice,
         quantity: item.quantity,
         seller: product.seller
+      });
+    }
+
+    if (orderItems.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'No valid products found in order. Please refresh your cart.'
       });
     }
 
@@ -99,6 +112,18 @@ export const createOrder = async (req, res) => {
         total
       },
       orderStatus: 'pending'
+    });
+
+    // Emit socket event for real-time dashboard updates
+    req.io.emit('order_created', {
+      order: {
+        _id: order._id,
+        orderNumber: order.orderNumber,
+        user: { _id: req.user._id, firstName: req.user.firstName, lastName: req.user.lastName },
+        pricing: order.pricing,
+        orderStatus: order.orderStatus,
+        createdAt: order.createdAt
+      }
     });
 
     res.status(201).json({
@@ -181,6 +206,13 @@ export const confirmOrderPayment = async (req, res) => {
     }
 
     await order.save();
+
+    // Emit socket event
+    req.io.emit('order_status_updated', {
+      orderId: order._id,
+      status: 'confirmed',
+      updatedBy: req.user._id
+    });
 
     // Send order confirmation email
     try {
@@ -305,6 +337,13 @@ export const updateOrderStatus = async (req, res) => {
 
     // Update status using the model method
     await order.updateStatus(status, note, req.user._id);
+
+    // Emit socket event
+    req.io.emit('order_status_updated', {
+      orderId: order._id,
+      status,
+      updatedBy: req.user._id
+    });
 
     // Update tracking info if provided
     if (trackingNumber) {

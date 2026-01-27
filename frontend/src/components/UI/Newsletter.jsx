@@ -1,4 +1,4 @@
-
+// Newsletter.jsx
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { FaPaperPlane, FaEnvelope } from 'react-icons/fa';

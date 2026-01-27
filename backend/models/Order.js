@@ -192,35 +192,40 @@ const orderSchema = new mongoose.Schema({
 });
 
 // Virtual for order total items count
-orderSchema.virtual('totalItems').get(function() {
+// Virtual for order total items count
+orderSchema.virtual('totalItems').get(function () {
+  if (!this.items || !Array.isArray(this.items)) return 0;
   return this.items.reduce((total, item) => total + item.quantity, 0);
 });
 
 // Virtual for order weight
-orderSchema.virtual('totalWeight').get(function() {
+orderSchema.virtual('totalWeight').get(function () {
+  if (!this.items || !Array.isArray(this.items)) return 0;
   return this.items.reduce((total, item) => {
     return total + (item.product?.shipping?.weight || 0) * item.quantity;
   }, 0);
 });
 
-// Pre-save middleware to generate order number
-orderSchema.pre('save', async function(next) {
-  if (this.isNew) {
+// Pre-validate middleware to generate order number
+orderSchema.pre('validate', async function (next) {
+  if (this.isNew && !this.orderNumber) {
     const count = await this.constructor.countDocuments();
     this.orderNumber = `NEX-${Date.now()}-${(count + 1).toString().padStart(4, '0')}`;
-    
-    // Add initial status to history
-    this.statusHistory.push({
-      status: this.orderStatus,
-      timestamp: new Date(),
-      note: 'Order created'
-    });
+
+    // Add initial status to history if empty
+    if (this.statusHistory.length === 0) {
+      this.statusHistory.push({
+        status: this.orderStatus,
+        timestamp: new Date(),
+        note: 'Order created'
+      });
+    }
   }
   next();
 });
 
 // Method to update order status
-orderSchema.methods.updateStatus = function(newStatus, note, updatedBy) {
+orderSchema.methods.updateStatus = function (newStatus, note, updatedBy) {
   this.orderStatus = newStatus;
   this.statusHistory.push({
     status: newStatus,
@@ -240,7 +245,7 @@ orderSchema.methods.updateStatus = function(newStatus, note, updatedBy) {
 };
 
 // Method to calculate commission for sellers
-orderSchema.methods.calculateCommissions = async function() {
+orderSchema.methods.calculateCommissions = async function () {
   for (let item of this.items) {
     const seller = await mongoose.model('User').findById(item.seller);
     if (seller && seller.sellerProfile) {
@@ -252,7 +257,7 @@ orderSchema.methods.calculateCommissions = async function() {
 };
 
 // Static method to get orders by status
-orderSchema.statics.getByStatus = function(status, limit = 50) {
+orderSchema.statics.getByStatus = function (status, limit = 50) {
   return this.find({ orderStatus: status })
     .populate('user', 'firstName lastName email')
     .populate('items.product', 'name images')
@@ -262,7 +267,7 @@ orderSchema.statics.getByStatus = function(status, limit = 50) {
 };
 
 // Static method to get user orders
-orderSchema.statics.getUserOrders = function(userId, limit = 20) {
+orderSchema.statics.getUserOrders = function (userId, limit = 20) {
   return this.find({ user: userId })
     .populate('items.product', 'name images slug')
     .sort({ createdAt: -1 })
@@ -270,7 +275,7 @@ orderSchema.statics.getUserOrders = function(userId, limit = 20) {
 };
 
 // Static method to get seller orders
-orderSchema.statics.getSellerOrders = function(sellerId, limit = 50) {
+orderSchema.statics.getSellerOrders = function (sellerId, limit = 50) {
   return this.find({ 'items.seller': sellerId })
     .populate('user', 'firstName lastName email')
     .populate('items.product', 'name images')

@@ -4,7 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -78,7 +78,7 @@ const AdminUsers = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">User Management</h1>
-          <button 
+          <button
             onClick={fetchUsers}
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -97,7 +97,7 @@ const AdminUsers = () => {
                 type="text"
                 placeholder="Search by name or email..."
                 value={filters.search}
-                onChange={(e) => setFilters({...filters, search: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -107,7 +107,7 @@ const AdminUsers = () => {
               </label>
               <select
                 value={filters.role}
-                onChange={(e) => setFilters({...filters, role: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Roles</option>
@@ -122,7 +122,7 @@ const AdminUsers = () => {
               </label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({...filters, status: e.target.value})}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">All Status</option>
@@ -173,9 +173,8 @@ const AdminUsers = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-2 py-1 text-xs rounded-full ${
-                        user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 py-1 text-xs rounded-full ${user.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                        }`}>
                         {user.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -188,9 +187,8 @@ const AdminUsers = () => {
                     <td className="px-6 py-4">
                       <button
                         onClick={() => handleStatusToggle(user._id, user.isActive)}
-                        className={`text-sm font-medium ${
-                          user.isActive ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'
-                        }`}
+                        className={`text-sm font-medium ${user.isActive ? 'text-red-600 hover:text-red-800' : 'text-green-600 hover:text-green-800'
+                          }`}
                       >
                         {user.isActive ? 'Deactivate' : 'Activate'}
                       </button>

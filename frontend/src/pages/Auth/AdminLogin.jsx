@@ -5,10 +5,10 @@ import { Helmet } from 'react-helmet-async';
 import { FiLock, FiMail, FiShield } from 'react-icons/fi';
 import toast from 'react-hot-toast';
 import axios from 'axios';
-import { setTokens, updateUser } from '../../redux/slices/authSlice';
+import { setTokens, updateUser, login } from '../../redux/slices/authSlice';
 import { initializeSocket } from '../../services/socketService';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -31,36 +31,23 @@ const AdminLogin = () => {
     setLoading(true);
 
     try {
-      const { data } = await axios.post(`${API_URL}/auth/login`, formData);
+      const resultAction = await dispatch(login({ ...formData, expectedRole: 'admin' }));
 
-      if (data.success) {
-        // Check if user is admin
-        if (data.data.user.role !== 'admin') {
-          toast.error('Access denied. Admin credentials required.');
-          setLoading(false);
-          return;
-        }
-
-        // Store tokens
-        localStorage.setItem('token', data.data.accessToken);
-        localStorage.setItem('refreshToken', data.data.refreshToken);
-
-        // Update Redux state
-        dispatch(setTokens({
-          accessToken: data.data.accessToken,
-          refreshToken: data.data.refreshToken
-        }));
-        dispatch(updateUser(data.data.user));
-
-        // Initialize socket
-        initializeSocket(data.data.accessToken);
-
+      if (login.fulfilled.match(resultAction)) {
         toast.success('Welcome back, Admin!');
         navigate('/admin/dashboard');
+      } else {
+        // Error is handled by the thunk and displayed via toast effect in main App/Login or below catch?
+        // Actually login thunk usually rejects with value.
+        // We rely on the toast in useEffect? No, AdminLogin doesn't have the toast effect for error yet.
+        // Let's add the toast effect or handle it here.
+        if (resultAction.payload) {
+          toast.error(resultAction.payload);
+        }
       }
     } catch (error) {
       console.error('Login error:', error);
-      toast.error(error.response?.data?.message || 'Invalid credentials');
+      toast.error('An error occurred during login');
     } finally {
       setLoading(false);
     }

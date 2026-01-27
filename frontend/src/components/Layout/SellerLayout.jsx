@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from 'react-router-dom'
-import { FiGrid, FiBox, FiShoppingBag, FiBarChart2, FiLogOut, FiArrowLeft } from 'react-icons/fi'
+import { FiGrid, FiBox, FiShoppingBag, FiBarChart2, FiLogOut, FiArrowLeft, FiSettings } from 'react-icons/fi'
 
 const SellerLayout = () => {
   const location = useLocation()
@@ -13,6 +13,7 @@ const SellerLayout = () => {
     { path: '/seller/products', label: 'Products', icon: FiBox },
     { path: '/seller/orders', label: 'Orders', icon: FiShoppingBag },
     { path: '/seller/analytics', label: 'Analytics', icon: FiBarChart2 },
+    { path: '/seller/profile', label: 'Store Profile', icon: FiSettings },
   ]
 
   return (

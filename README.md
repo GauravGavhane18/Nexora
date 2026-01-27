@@ -8,7 +8,7 @@
 
 ---
 
-## 🚀 Overview
+##  Overview
 
 NEXORA is designed to demonstrate advanced full-stack capabilities, moving beyond simple CRUD operations to tackle complex real-world e-commerce challenges. It features a microservice-ready architecture with a dedicated Python-based recommendation engine, real-time socket communication for auctions/messaging, and a robust role-based security model.
 

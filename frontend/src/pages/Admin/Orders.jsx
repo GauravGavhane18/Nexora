@@ -4,7 +4,7 @@ import axios from 'axios';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -113,7 +113,7 @@ const AdminOrders = () => {
       <div className="p-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Order Management</h1>
-          <button 
+          <button
             onClick={fetchOrders}
             className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
@@ -164,7 +164,7 @@ const AdminOrders = () => {
                       {format(new Date(order.createdAt), 'MMM dd, yyyy')}
                     </td>
                     <td className="px-6 py-4">
-                      <button 
+                      <button
                         onClick={() => handleViewOrder(order._id)}
                         className="text-blue-600 hover:text-blue-800 font-medium"
                       >
@@ -185,7 +185,7 @@ const AdminOrders = () => {
               <div className="p-6 border-b">
                 <div className="flex justify-between items-center">
                   <h2 className="text-xl font-bold">Order Details - {selectedOrder.orderNumber}</h2>
-                  <button 
+                  <button
                     onClick={() => setShowModal(false)}
                     className="text-gray-500 hover:text-gray-700"
                   >
@@ -222,8 +222,8 @@ const AdminOrders = () => {
                       <div key={index} className="flex items-center justify-between p-4 border-b last:border-0">
                         <div className="flex items-center">
                           {item.image?.url && (
-                            <img 
-                              src={item.image.url} 
+                            <img
+                              src={item.image.url}
                               alt={item.name}
                               className="w-16 h-16 object-cover rounded mr-4"
                             />
@@ -278,7 +278,7 @@ const AdminOrders = () => {
                       </label>
                       <select
                         value={statusUpdate.status}
-                        onChange={(e) => setStatusUpdate({...statusUpdate, status: e.target.value})}
+                        onChange={(e) => setStatusUpdate({ ...statusUpdate, status: e.target.value })}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                       >
                         <option value="pending">Pending</option>
@@ -298,7 +298,7 @@ const AdminOrders = () => {
                         <input
                           type="text"
                           value={statusUpdate.trackingNumber}
-                          onChange={(e) => setStatusUpdate({...statusUpdate, trackingNumber: e.target.value})}
+                          onChange={(e) => setStatusUpdate({ ...statusUpdate, trackingNumber: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                           placeholder="Optional"
                         />
@@ -310,7 +310,7 @@ const AdminOrders = () => {
                         <input
                           type="text"
                           value={statusUpdate.carrier}
-                          onChange={(e) => setStatusUpdate({...statusUpdate, carrier: e.target.value})}
+                          onChange={(e) => setStatusUpdate({ ...statusUpdate, carrier: e.target.value })}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                           placeholder="e.g., FedEx, UPS"
                         />
@@ -323,7 +323,7 @@ const AdminOrders = () => {
                       </label>
                       <textarea
                         value={statusUpdate.note}
-                        onChange={(e) => setStatusUpdate({...statusUpdate, note: e.target.value})}
+                        onChange={(e) => setStatusUpdate({ ...statusUpdate, note: e.target.value })}
                         rows="2"
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         placeholder="Optional note about this status update"

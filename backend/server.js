@@ -28,12 +28,8 @@ import paymentRoutes from './routes/paymentRoutes.js';
 import contactRoutes from './routes/contactRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import bundleRoutes from './routes/bundleRoutes.js';
-import loyaltyRoutes from './routes/loyaltyRoutes.js';
-import referralRoutes from './routes/referralRoutes.js';
-import messageRoutes from './routes/messageRoutes.js';
-import blogRoutes from './routes/blogRoutes.js';
+
 import auctionRoutes from './routes/auctionRoutes.js';
-import supportRoutes from './routes/supportRoutes.js';
 import placeholderRoutes from './routes/placeholderRoutes.js';
 
 // Load environment variables
@@ -74,30 +70,19 @@ app.use(helmet());
 app.use(mongoSanitize());
 app.use(xss());
 
+// CORS configuration moved before rate limiter
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
+
 // Rate limiting
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000,
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
-
-// CORS configuration
-// CORS configuration moved to top
-
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-}));
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
@@ -134,12 +119,7 @@ app.use('/api/v1/payments', paymentRoutes);
 app.use('/api/v1/contact', contactRoutes);
 app.use('/api/v1/notifications', notificationRoutes);
 app.use('/api/v1/bundles', bundleRoutes);
-app.use('/api/v1/loyalty', loyaltyRoutes);
-app.use('/api/v1/referrals', referralRoutes);
-app.use('/api/v1/messages', messageRoutes);
-app.use('/api/v1/blogs', blogRoutes);
 app.use('/api/v1/auctions', auctionRoutes);
-app.use('/api/v1/support', supportRoutes);
 app.use('/api/placeholder', placeholderRoutes);
 
 // Health check endpoint

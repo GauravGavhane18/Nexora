@@ -9,26 +9,60 @@ dotenv.config();
 const seedEnhanced = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI);
-    console.log('📊 MongoDB Connected');
+    console.log(' MongoDB Connected');
 
-    // Get seller user
-    let seller = await User.findOne({ role: 'seller' });
-    if (!seller) {
-      console.log('⚠️ No seller found. Creating a default seller...');
-      const newSeller = await User.create({
-        firstName: 'Test',
-        lastName: 'Seller',
+    // Create Standard Users (Admin, Seller, Buyer)
+    const users = [
+      {
+        firstName: 'John',
+        lastName: 'Doe',
+        email: 'buyer@test.com',
+        password: 'Test@123',
+        role: 'user',
+        isEmailVerified: true,
+        isActive: true
+      },
+      {
+        firstName: 'Jane',
+        lastName: 'Retail',
         email: 'seller@test.com',
-        password: 'password123', // Will be hashed by pre-save hook
+        password: 'Test@123',
         role: 'seller',
         isEmailVerified: true,
+        isActive: true,
         sellerProfile: {
           businessName: 'NEXORA Retail',
-          isApproved: true
+          isApproved: true,
+          businessType: 'individual',
+          commission: 10
         }
-      });
-      seller = newSeller;
-      console.log('✅ Created default seller: seller@test.com');
+      },
+      {
+        firstName: 'System',
+        lastName: 'Admin',
+        email: 'admin@test.com',
+        password: 'Test@123',
+        role: 'admin',
+        isEmailVerified: true,
+        isActive: true
+      }
+    ];
+
+    for (const userData of users) {
+      const existingUser = await User.findOne({ email: userData.email });
+      if (!existingUser) {
+        await User.create(userData);
+        console.log(`✅ Created user: ${userData.email} (${userData.role})`);
+      } else {
+        console.log(`ℹ️  User ${userData.email} already exists`);
+      }
+    }
+
+    // Get seller user for product association
+    let seller = await User.findOne({ email: 'seller@test.com' });
+    if (!seller) {
+      // Fallback (should not happen given above)
+      seller = await User.findOne({ role: 'seller' });
     }
 
     // Create comprehensive categories
@@ -472,6 +506,43 @@ const seedEnhanced = async () => {
 
     await Product.insertMany(processedProducts);
     console.log('✅ Created comprehensive product catalog (50+ items)');
+
+    // --- Create Sample Auctions ---
+    await Auction.deleteMany({});
+
+    // Get seeded products for auctions
+    const expensiveProducts = await Product.find({
+      basePrice: { $gt: 300 }
+    }).limit(6);
+
+    const auctionSeller = await User.findOne({ email: 'seller@test.com' });
+
+    if (expensiveProducts.length > 0 && auctionSeller) {
+      const auctions = expensiveProducts.map((product, index) => {
+        const startTime = new Date();
+        const endTime = new Date();
+        endTime.setDate(endTime.getDate() + (index + 2)); // End in 2-7 days
+
+        return {
+          product: product._id,
+          seller: auctionSeller._id,
+          title: `Exclusive Auction: ${product.name}`,
+          description: `Bid now on this pristine condition ${product.name}. Original packaging included.`,
+          startingPrice: Math.round(product.basePrice * 0.5),
+          reservePrice: Math.round(product.basePrice * 0.8),
+          currentBid: 0,
+          bidIncrement: 10,
+          startTime: startTime,
+          endTime: endTime,
+          status: 'active',
+          viewsCount: Math.floor(Math.random() * 50) + 10,
+          bids: []
+        };
+      });
+
+      await Auction.insertMany(auctions);
+      console.log(`✅ Created ${auctions.length} active auctions from premium products`);
+    }
 
     console.log('\n🎉 Enhanced seed completed successfully!');
     console.log(`📦 Created ${products.length} products`);

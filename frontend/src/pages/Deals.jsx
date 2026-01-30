@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 
 const Deals = () => {
   const dispatch = useDispatch()
-  
+
   const [deals] = useState([
     {
       id: 101,
@@ -111,7 +111,12 @@ const Deals = () => {
             {deals.map((deal) => (
               <div key={deal.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative">
-                  <img src={deal.image} alt={deal.name} className="w-full h-64 object-cover" />
+                  <img
+                    src={deal.image}
+                    alt={deal.name}
+                    onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=Deal'; e.target.onerror = null; }}
+                    className="w-full h-64 object-cover"
+                  />
                   <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 rounded-full font-bold">
                     -{deal.discount}%
                   </div>

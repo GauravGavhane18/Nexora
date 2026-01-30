@@ -37,7 +37,7 @@ const ProductListing = () => {
       setProducts(response.data.data.products || [])
     } catch (error) {
       console.error('Error fetching products:', error)
-      toast.error('Failed to load products')
+      toast.error('Failed to load products. Check backend connection.')
     } finally {
       setLoading(false)
     }
@@ -415,8 +415,8 @@ const ProductListing = () => {
                     onClick={() => setShowCompare(true)}
                     disabled={compareList.length < 2}
                     className={`px-6 py-2 rounded-md font-medium transition-colors ${compareList.length < 2
-                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                      ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
                       }`}
                   >
                     Compare Now
@@ -499,8 +499,8 @@ const ProductListing = () => {
                           onClick={() => handleAddToCart(product)}
                           disabled={product.inventory?.quantity <= 0}
                           className={`w-full py-2 rounded-md font-medium transition-colors ${product.inventory?.quantity <= 0
-                              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                              : 'bg-blue-600 text-white hover:bg-blue-700'
+                            ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                            : 'bg-blue-600 text-white hover:bg-blue-700'
                             }`}
                         >
                           {product.inventory?.quantity <= 0 ? 'Out of Stock' : 'Add to Cart'}

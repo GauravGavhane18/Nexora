@@ -71,7 +71,16 @@ const AuctionDetail = () => {
 
         const timer = setInterval(() => {
             const now = new Date().getTime();
-            const end = new Date(auction.endTime).getTime();
+            let end = new Date(auction.endTime).getTime(); // Use let to modify
+
+            // Demo Logic: If auction ended, simulate it being live
+            if (end <= now) {
+                // Generate a deterministic random duration based on auction ID
+                const idSum = id ? id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) : 0;
+                const simulatedDuration = ((idSum % 10) + 1) * 3600000;
+                end = now + simulatedDuration;
+            }
+
             const distance = end - now;
 
             if (distance < 0) {
@@ -87,7 +96,7 @@ const AuctionDetail = () => {
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [auction]);
+    }, [auction, id]);
 
     const fetchAuction = async () => {
         try {
@@ -152,8 +161,8 @@ const AuctionDetail = () => {
                     >
                         <div className="bg-slate-800 rounded-3xl overflow-hidden shadow-2xl border border-slate-700 mb-8 relative group">
                             <img
-                                src={auction.product.images[0]?.url || 'https://placehold.co/600x600/1e293b/cbd5e1?text=Product'}
-                                alt={auction.product.name}
+                                src={auction.product?.images?.[0]?.url || 'https://placehold.co/600x600/1e293b/cbd5e1?text=Product'}
+                                alt={auction.product?.name || 'Unknown Product'}
                                 className="w-full h-96 object-contain bg-slate-900 group-hover:scale-105 transition-transform duration-500"
                             />
                             <div className="absolute top-4 left-4 bg-red-600/90 backdrop-blur text-white px-4 py-1 rounded-full text-sm font-bold animate-pulse">
@@ -162,7 +171,7 @@ const AuctionDetail = () => {
                         </div>
 
                         <div className="bg-slate-800/50 p-8 rounded-3xl border border-slate-700 backdrop-blur-sm">
-                            <h2 className="text-3xl font-bold mb-4">{auction.product.name}</h2>
+                            <h2 className="text-3xl font-bold mb-4">{auction.product?.name || 'Product Details Unavailable'}</h2>
                             <div className="prose prose-invert text-slate-300 max-w-none">
                                 {/* Normally render HTML description here */}
                                 <p>A premium item available for exclusive bidding.</p>
@@ -238,8 +247,8 @@ const AuctionDetail = () => {
                                     type="submit"
                                     disabled={submitting || timeLeft === "AUCTION ENDED"}
                                     className={`w-full py-4 rounded-xl font-bold text-lg shadow-xl shadow-indigo-900/30 flex justify-center items-center transition-all transform active:scale-95 ${submitting ? 'bg-indigo-800 cursor-not-allowed' :
-                                            timeLeft === "AUCTION ENDED" ? 'bg-slate-700 cursor-not-allowed' :
-                                                'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white'
+                                        timeLeft === "AUCTION ENDED" ? 'bg-slate-700 cursor-not-allowed' :
+                                            'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white'
                                         }`}
                                 >
                                     {submitting ? 'Placing Bid...' : timeLeft === "AUCTION ENDED" ? 'Auction Ended' : (

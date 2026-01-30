@@ -16,28 +16,28 @@ const Wishlist = () => {
   };
 
   const handleAddToCart = (item) => {
-    dispatch(addToCart({ 
+    dispatch(addToCart({
       id: item.id,
       name: item.name,
       price: item.price,
       image: item.image,
       category: item.category,
-      quantity: 1 
+      quantity: 1
     }));
     toast.success(`${item.name} added to cart!`);
   };
 
   const handleMoveAllToCart = () => {
     if (items.length === 0) return;
-    
+
     items.forEach(item => {
-      dispatch(addToCart({ 
+      dispatch(addToCart({
         id: item.id,
         name: item.name,
         price: item.price,
         image: item.image,
         category: item.category,
-        quantity: 1 
+        quantity: 1
       }));
     });
     dispatch(clearWishlist());
@@ -71,8 +71,8 @@ const Wishlist = () => {
             </div>
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Your wishlist is empty</h2>
             <p className="text-gray-600 mb-8">Save items you love to your wishlist and shop them later!</p>
-            <Link 
-              to="/products" 
+            <Link
+              to="/products"
               className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
             >
               Browse Products
@@ -86,7 +86,7 @@ const Wishlist = () => {
   return (
     <>
       <Helmet>
-        <title>Wishlist ({items.length}) - NEXORA</title>
+        <title>{`Wishlist (${items.length}) - NEXORA`}</title>
       </Helmet>
 
       <div className="min-h-screen bg-gray-50 py-8">
@@ -119,14 +119,14 @@ const Wishlist = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {items.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="relative overflow-hidden">
                   <Link to={`/products/${item.id}`}>
-                    <img 
-                      src={getImageUrl(item.image)} 
+                    <img
+                      src={getImageUrl(item.image)}
                       alt={item.name}
                       className="w-full h-64 object-cover group-hover:scale-110 transition-transform duration-300"
                       onError={(e) => {
@@ -134,7 +134,7 @@ const Wishlist = () => {
                       }}
                     />
                   </Link>
-                  
+
                   {/* Remove Button */}
                   <button
                     onClick={() => handleRemove(item.id, item.name)}
@@ -189,8 +189,8 @@ const Wishlist = () => {
 
           {/* Continue Shopping */}
           <div className="mt-12 text-center">
-            <Link 
-              to="/products" 
+            <Link
+              to="/products"
               className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
             >
               ← Continue Shopping

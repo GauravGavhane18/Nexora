@@ -1,30 +1,42 @@
+import axios from 'axios';
 import api from './api';
 
-// Python Microservice URL (keep for other things if needed, or remove if unused)
+// Python Microservice URL
 const REC_API_URL = import.meta.env.VITE_AI_URL || 'http://localhost:8000';
-// Node Backend URL (proxied via /api)
-// Node Backend URL (proxied via /api)
+// Node Backend URL (proxied via /api for logging)
 const BACKEND_API_URL = '/analytics';
 
 export const getHomeRecommendations = async (userId) => {
     try {
-        // Keeping this as is for now, or fallback to products?
-        // Assuming the user only cared about product pages for now.
-        const response = await api.get(`/products?limit=4`);
-        return response.data.data.products;
+        // user_id in python engine is string 
+        const response = await axios.get(`${REC_API_URL}/recommend/home/${userId}`);
+        // Python returns { recommendations: [] }
+        return response.data.recommendations || [];
     } catch (error) {
-        console.error("Failed to fetch home recommendations:", error);
-        return [];
+        console.error("Failed to fetch home recommendations from AI Engine:", error);
+        // Fallback to simple latest products if AI fails
+        try {
+            const fallback = await api.get(`/products?limit=4`);
+            return fallback.data.data.products;
+        } catch (e) {
+            return [];
+        }
     }
 };
 
 export const getProductRecommendations = async (productId) => {
     try {
-        const response = await api.get(`/products/${productId}/recommendations`);
-        return response.data.data;
+        const response = await axios.get(`${REC_API_URL}/recommend/product/${productId}`);
+        return response.data.recommendations || [];
     } catch (error) {
-        console.error("Failed to fetch product recommendations:", error);
-        return [];
+        console.error("Failed to fetch product recommendations from AI Engine:", error);
+        // Fallback to simpler category match
+        try {
+            const fallback = await api.get(`/products/${productId}/recommendations`);
+            return fallback.data.data;
+        } catch (e) {
+            return [];
+        }
     }
 };
 

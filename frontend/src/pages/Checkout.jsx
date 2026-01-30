@@ -185,35 +185,47 @@ const CheckoutForm = () => {
 
       const orderId = orderResponse.data.order._id;
 
-      // 2. Confirm payment with Stripe
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: elements.getElement(CardElement),
-          billing_details: {
-            name: `${formData.firstName} ${formData.lastName}`,
-            email: formData.email,
-            address: {
-              line1: formData.street,
-              city: formData.city,
-              state: formData.state,
-              postal_code: formData.zipCode,
-              country: 'US'
+      // 2. Confirm payment
+      let paymentStatus = 'succeeded';
+      let paymentIntentData = { id: paymentIntentId, status: 'succeeded' };
+
+      // Check for Mock Payment (Dev Mode / Expired Keys)
+      if (clientSecret && clientSecret.startsWith('pi_mock_')) {
+        console.log('Using Mock Payment Flow');
+        // Simulate network delay for realism
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        paymentIntentData = { id: paymentIntentId, status: 'succeeded' };
+      } else {
+        // Real Stripe Payment
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: elements.getElement(CardElement),
+            billing_details: {
+              name: `${formData.firstName} ${formData.lastName}`,
+              email: formData.email,
+              address: {
+                line1: formData.street,
+                city: formData.city,
+                state: formData.state,
+                postal_code: formData.zipCode,
+                country: 'US'
+              }
             }
           }
-        }
-      });
+        });
 
-      if (error) {
-        // If payment fails, we could optionally cancel the pending order here, 
-        // or let it remain pending/expire.
-        throw new Error(error.message);
+        if (error) {
+          throw new Error(error.message);
+        }
+        paymentIntentData = paymentIntent;
+        paymentStatus = paymentIntent.status;
       }
 
-      if (paymentIntent.status === 'succeeded') {
+      if (paymentStatus === 'succeeded') {
         // 3. Confirm payment on backend (finalize order)
         await axios.put(
           `${API_URL}/orders/${orderId}/confirm-payment`,
-          { paymentIntentId: paymentIntent.id },
+          { paymentIntentId: paymentIntentData.id },
           { headers: { Authorization: `Bearer ${token}` } }
         );
 

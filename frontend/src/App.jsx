@@ -76,6 +76,9 @@ const AdminSettings = lazy(() => import('./pages/Admin/Settings'))
 // Utility Pages
 const NotFound = lazy(() => import('./pages/NotFound'))
 const Unauthorized = lazy(() => import('./pages/Unauthorized'))
+const FAQ = lazy(() => import('./pages/FAQ'))
+const Shipping = lazy(() => import('./pages/Shipping'))
+const Returns = lazy(() => import('./pages/Returns'))
 
 // Route Protection
 import ProtectedRoute from './components/Auth/ProtectedRoute'
@@ -140,15 +143,18 @@ function App() {
             <Route path="contact" element={<Contact />} />
             <Route path="payments" element={<Payments />} />
             <Route path="help" element={<Help />} />
+            <Route path="faq" element={<FAQ />} />
+            <Route path="shipping-info" element={<Shipping />} />
+            <Route path="returns" element={<Returns />} />
             <Route path="track-order" element={<TrackOrder />} />
             <Route path="locations" element={<Locations />} />
             <Route path="auctions" element={<Auctions />} />
             <Route path="auctions/:id" element={<AuctionDetail />} />
+            <Route path="subscription-plans" element={<SubscriptionPlans />} />
 
             {/* Protected Routes - Require Authentication */}
             <Route path="cart" element={<Cart />} />
             <Route path="wishlist" element={<Wishlist />} />
-            <Route path="subscription-plans" element={<ProtectedRoute><SubscriptionPlans /></ProtectedRoute>} />
             <Route path="checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
             <Route path="dashboard" element={<ProtectedRoute><UserDashboard /></ProtectedRoute>} />
             <Route path="orders" element={<ProtectedRoute><UserOrders /></ProtectedRoute>} />

@@ -15,7 +15,7 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    
+
     try {
       const response = await api.post('/contact', formData)
 
@@ -41,7 +41,7 @@ const Contact = () => {
   }
 
   const contactInfo = [
-    { icon: '📍', title: 'Address', info: 'Shop No. 12, Tech Plaza, Pune, Maharashtra 411001, India' },
+    { icon: '📍', title: 'Address', info: 'Manjari bk, Pune-411041, Maharashtra, India' },
     { icon: '📞', title: 'Phone', info: '+91 7218603915' },
     { icon: '✉️', title: 'Email', info: 'gavhanegs18@gmail.com' },
     { icon: '🕐', title: 'Hours', info: 'Mon-Sat: 10AM - 7PM IST' },
@@ -85,7 +85,7 @@ const Contact = () => {
                         minLength={2}
                         maxLength={100}
                         value={formData.name}
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="John Doe"
                       />
@@ -97,7 +97,7 @@ const Contact = () => {
                         type="email"
                         required
                         value={formData.email}
-                        onChange={(e) => setFormData({...formData, email: e.target.value})}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="john@example.com"
                       />
@@ -111,7 +111,7 @@ const Contact = () => {
                       minLength={5}
                       maxLength={200}
                       value={formData.subject}
-                      onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="How can we help?"
                     />
@@ -125,7 +125,7 @@ const Contact = () => {
                       minLength={10}
                       maxLength={1000}
                       value={formData.message}
-                      onChange={(e) => setFormData({...formData, message: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       placeholder="Tell us more about your inquiry..."
                     />

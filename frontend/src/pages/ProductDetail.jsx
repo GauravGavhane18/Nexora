@@ -414,6 +414,7 @@ const ProductDetail = () => {
                     <img
                       src={rec.image || rec.images?.[0]?.url || rec.images?.[0] || 'https://placehold.co/300'}
                       alt={rec.name}
+                      onError={(e) => { e.target.src = 'https://placehold.co/300?text=Product'; e.target.onerror = null; }}
                       className="h-full w-full object-cover object-center lg:h-full lg:w-full"
                     />
                   </div>

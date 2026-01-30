@@ -1,23 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Helmet } from 'react-helmet-async'
-import { Link } from 'react-router-dom'
-import { useDispatch } from 'react-redux'
+import { Link, useNavigate } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
 import { addToCart } from '../redux/slices/cartSlice'
 import toast from 'react-hot-toast'
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
+import { FaArrowRight, FaStar, FaShoppingCart, FaShieldAlt, FaBolt, FaRocket, FaCrown, FaMapMarkedAlt, FaPlay } from 'react-icons/fa'
 
 import api from '../services/api'
 import { getHomeRecommendations } from '../services/recommendationService'
-import { useSelector } from 'react-redux'
 import SkeletonCard from '../components/UI/SkeletonCard'
 
 const Home = () => {
   const dispatch = useDispatch()
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [featuredProducts, setFeaturedProducts] = useState([])
   const [trendingProducts, setTrendingProducts] = useState([])
   const [recommendations, setRecommendations] = useState([])
   const [loading, setLoading] = useState(true)
   const { user } = useSelector((state) => state.auth)
+
+  const { scrollY } = useScroll()
+  const y1 = useTransform(scrollY, [0, 500], [0, 200])
+  const y2 = useTransform(scrollY, [0, 500], [0, -150])
 
   useEffect(() => {
     fetchAllProducts()
@@ -29,41 +35,16 @@ const Home = () => {
   const fetchAllProducts = async () => {
     try {
       const response = await api.get('/products?limit=50')
-      console.log('Products:', response.data)
       const allProducts = response.data.data.products || []
-      setFeaturedProducts(allProducts.slice(0, 4))
-      setTrendingProducts(allProducts.slice(4, 8))
+      setFeaturedProducts(allProducts.slice(0, 8))
+      setTrendingProducts(allProducts.slice(8, 12))
     } catch (error) {
       console.error('Error fetching products:', error)
+      toast.error('Failed to load products. Please check your connection.')
     } finally {
       setLoading(false)
     }
   }
-
-  const categories = [
-    { name: 'Electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=300&h=200&fit=crop', count: 245 },
-    { name: 'Food & Grocery', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=300&h=200&fit=crop', count: 1250 },
-    { name: 'Fashion & Clothing', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=300&h=200&fit=crop', count: 890 },
-    { name: 'Home & Garden', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=300&h=200&fit=crop', count: 567 },
-  ]
-
-  const testimonials = [
-    { name: 'Priya Sharma', role: 'Software Engineer, Pune', image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop', text: 'NEXORA has completely changed how I shop online. Amazing products at great prices with fast delivery across India!', rating: 5 },
-    { name: 'Rahul Patel', role: 'Business Owner, Mumbai', image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop', text: 'Best online shopping experience! Quality products and excellent customer service. Highly recommended for all Indians!', rating: 5 },
-    { name: 'Anjali Desai', role: 'Content Creator, Bangalore', image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&h=100&fit=crop', text: 'The quality of products on NEXORA is unmatched. Been shopping here for 6 months and absolutely love it!', rating: 5 },
-    { name: 'Vikram Singh', role: 'Student, Delhi', image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop', text: 'Great deals and fast shipping! Perfect for students like me. The loyalty program is amazing too!', rating: 5 },
-    { name: 'Sneha Reddy', role: 'Doctor, Hyderabad', image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&h=100&fit=crop', text: 'Trustworthy platform with genuine products. Love the easy returns and customer support!', rating: 5 },
-    { name: 'Arjun Mehta', role: 'Entrepreneur, Ahmedabad', image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&h=100&fit=crop', text: 'NEXORA is my go-to for all online shopping. Quality products, competitive prices, and reliable service!', rating: 5 },
-  ]
-
-  const brands = [
-    { name: 'Apple', logo: '🍎' },
-    { name: 'Samsung', logo: '📱' },
-    { name: 'Sony', logo: '🎮' },
-    { name: 'Microsoft', logo: '💻' },
-    { name: 'Google', logo: '🔍' },
-    { name: 'Amazon', logo: '📦' },
-  ]
 
   const handleAddToCart = (product) => {
     dispatch(addToCart({
@@ -73,372 +54,292 @@ const Home = () => {
       image: product.images?.[0]?.url || product.image,
       quantity: 1
     }))
-    toast.success(
-      <div>
-        <p className="font-semibold">{product.name} added to cart!</p>
-        <Link to="/cart" className="text-blue-600 hover:underline text-sm">View Cart</Link>
-      </div>,
-      { duration: 3000 }
-    )
+    toast.custom((t) => (
+      <div className={`${t.visible ? 'animate-enter' : 'animate-leave'} max-w-md w-full bg-white shadow-lg rounded-xl pointer-events-auto flex ring-1 ring-black ring-opacity-5`}>
+        <div className="flex-1 w-0 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <img className="h-10 w-10 rounded-full object-cover" src={product.images?.[0]?.url} alt="" />
+            </div>
+            <div className="ml-3 flex-1">
+              <p className="text-sm font-medium text-gray-900">Added to Cart</p>
+              <p className="mt-1 text-sm text-gray-500">{product.name}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    ))
   }
 
   const handleNewsletterSubmit = (e) => {
     e.preventDefault()
     if (email) {
-      toast.success('Thanks for subscribing! Check your email for exclusive deals.')
+      toast.success('Welcome to the inner circle! Check your inbox.')
       setEmail('')
     }
   }
 
+  const categories = [
+    { name: 'Electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=800&q=80', count: 245, color: 'from-blue-500 to-cyan-500' },
+    { name: 'Fashion', image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800&q=80', count: 890, color: 'from-purple-500 to-pink-500' },
+    { name: 'Home', image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&q=80', count: 567, color: 'from-orange-500 to-amber-500' },
+    { name: 'Grocery', image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&q=80', count: 1250, color: 'from-green-500 to-emerald-500' },
+  ]
+
   return (
     <>
       <Helmet>
-        <title>NEXORA - Advanced E-Commerce Platform</title>
+        <title>NEXORA | The Future of Shopping</title>
         <meta name="description" content="Discover premium products with subscription-based access on NEXORA." />
       </Helmet>
 
-      <div className="min-h-screen bg-gray-50">
-        {/* Hero Section */}
-        <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h1 className="text-5xl font-bold mb-6">
-              Welcome to <span className="text-yellow-300">NEXORA</span>
-            </h1>
-            <p className="text-xl mb-8 max-w-3xl mx-auto">
-              The next generation e-commerce platform with subscription-based access to premium products and services.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/products" className="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
-                Explore Products
-              </Link>
-              <Link to="/deals" className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
-                View Hot Deals
-              </Link>
-            </div>
+      <div className="min-h-screen bg-slate-50 font-sans text-slate-900 overflow-x-hidden selection:bg-primary-200 selection:text-primary-900">
+
+        {/* HERO SECTION */}
+        <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-slate-950">
+          {/* Abstract Background */}
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-[-20%] right-[-10%] w-[60%] h-[60%] rounded-full bg-primary-600/20 blur-[120px] animate-blob"></div>
+            <div className="absolute bottom-[-20%] left-[-10%] w-[60%] h-[60%] rounded-full bg-secondary-600/20 blur-[120px] animate-blob animation-delay-2000"></div>
+            <div className="absolute top-[40%] left-[30%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[100px] animate-blob animation-delay-4000"></div>
           </div>
-        </section>
 
-        {/* Features Section */}
-        <section className="py-20">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-16">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">
-                Why Choose NEXORA?
-              </h2>
-              <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-                Experience the future of e-commerce with our advanced features and subscription-based model.
-              </p>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl">🚀</span>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pt-20">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <motion.div
+                initial={{ opacity: 0, x: -50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                style={{ y: y1 }}
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-sm font-medium text-primary-300 mb-8">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary-500"></span>
+                  </span>
+                  AI-Powered Shopping Experience
                 </div>
-                <h3 className="text-xl font-semibold mb-4">Premium Products</h3>
-                <p className="text-gray-600">
-                  Access exclusive products and services with our subscription-based model.
+
+                <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8 leading-[1.1] font-display text-white">
+                  More Than <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-400 via-secondary-400 to-primary-400 animate-gradient-x">Just Shopping.</span>
+                </h1>
+
+                <p className="text-xl text-slate-300 mb-10 max-w-xl leading-relaxed border-l-2 border-primary-500/50 pl-6">
+                  Experience the next generation of e-commerce. Personalized by AI, curated by experts, delivered with speed.
                 </p>
-              </div>
 
-              <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl">⚡</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Real-time Updates</h3>
-                <p className="text-gray-600">
-                  Get instant notifications about orders, inventory, and exclusive offers.
-                </p>
-              </div>
-
-              <div className="bg-white p-8 rounded-xl shadow-lg text-center">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <span className="text-2xl">🛡️</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-4">Secure & Reliable</h3>
-                <p className="text-gray-600">
-                  Enterprise-grade security with advanced authentication and data protection.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section >
-
-        {/* Recommended for You */}
-        {
-          recommendations.length > 0 && (
-            <section className="py-20 bg-gray-50">
-              <div className="max-w-7xl mx-auto px-4">
-                <div className="text-center mb-12">
-                  <h2 className="text-4xl font-bold text-gray-900 mb-4">Recommended for You</h2>
-                  <p className="text-xl text-gray-600">Picked just for you based on your interests</p>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {recommendations.map((rec) => (
-                    <div key={rec._id || rec.id || rec.product_id} className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow group">
-                      <div className="relative overflow-hidden">
-                        <img src={rec.image || 'https://placehold.co/300x300?text=No+Image'} alt={rec.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                        <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">
-                          {rec.reason}
-                        </div>
-                      </div>
-                      <div className="p-4">
-                        <h3 className="font-semibold text-gray-900 mb-2 truncate">{rec.name}</h3>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xl font-bold text-blue-600">${rec.price}</span>
-                          <Link
-                            to={`/products/${rec.product_id}`}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                          >
-                            View
-                          </Link>
-                        </div>
-                      </div>
+                <div className="flex flex-wrap gap-4">
+                  <Link to="/products" className="group relative flex items-center justify-center gap-3 bg-white text-slate-950 px-8 py-4 rounded-full font-bold text-lg hover:bg-primary-50 transition-all shadow-[0_0_40px_-10px_rgba(255,255,255,0.3)] hover:shadow-[0_0_60px_-15px_rgba(255,255,255,0.4)]">
+                    Start Exploring
+                    <FaArrowRight className="group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <button onClick={() => {
+                    const el = document.getElementById('demo-video');
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }} className="flex items-center justify-center gap-3 px-8 py-4 rounded-full font-bold text-white border border-white/10 hover:bg-white/5 transition-all backdrop-blur-sm group">
+                    <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center group-hover:bg-primary-500 transition-colors">
+                      <FaPlay size={10} className="ml-0.5" />
                     </div>
-                  ))}
+                    Watch Demo
+                  </button>
                 </div>
-              </div>
-            </section>
-          )
-        }
+              </motion.div>
 
-        {/* Featured Products Section */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Featured Products</h2>
-              <p className="text-xl text-gray-600">Discover our most popular items</p>
-            </div>
-            {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[...Array(4)].map((_, index) => (
-                  <SkeletonCard key={index} />
-                ))}
-              </div>
-            ) : featuredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No products available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {featuredProducts.map((product) => (
-                  <div key={product._id} className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow group">
-                    <div className="relative overflow-hidden">
-                      <img src={product.images?.[0]?.url || '/api/placeholder/300/300'} alt={product.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                      <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded text-sm font-semibold">
-                        ⭐ {product.ratings?.average || 4.5}
-                      </div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ duration: 1, delay: 0.2 }}
+                style={{ y: y2 }}
+                className="relative hidden lg:block"
+              >
+                <div className="relative z-10 w-full aspect-[4/5] rounded-[2.5rem] overflow-hidden shadow-2xl border border-white/10 group bg-slate-900/50 backdrop-blur-sm">
+                  <img
+                    src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80"
+                    alt="Hero Product"
+                    className="w-full h-full object-cover opacity-90 group-hover:scale-105 transition-transform duration-1000"
+                  />
+
+                  {/* Floating Product Cards */}
+                  <div className="absolute top-10 -right-10 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl flex items-center gap-4 animate-bounce-slow">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-primary-600">
+                      <FaBolt size={20} />
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 truncate">{product.name}</h3>
-                      <div className="flex items-center justify-between">
-                        <span className="text-xl font-bold text-blue-600">${product.basePrice}</span>
-                        <button
-                          onClick={() => handleAddToCart(product)}
-                          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm"
-                        >
-                          Add to Cart
-                        </button>
-                      </div>
+                    <div>
+                      <p className="text-white font-bold">Fast Delivery</p>
+                      <p className="text-white/60 text-xs">Under 2 hours</p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            <div className="text-center mt-10">
-              <Link to="/products" className="inline-block bg-gray-900 text-white px-8 py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors">
-                View All Products →
-              </Link>
+
+                  <div className="absolute bottom-20 -left-10 bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 shadow-xl flex items-center gap-4 animate-pulse-slow">
+                    <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center text-secondary-600">
+                      <FaCrown size={20} />
+                    </div>
+                    <div>
+                      <p className="text-white font-bold">Premium Quality</p>
+                      <p className="text-white/60 text-xs">Verified Sellers</p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </div>
           </div>
         </section>
 
-        {/* Categories Section */}
-        <section className="py-20 bg-gray-100">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">Shop by Category</h2>
-              <p className="text-xl text-gray-600">Browse our wide range of categories</p>
+        {/* BRANDS TICKER */}
+        <div className="bg-slate-950 border-t border-white/5 py-10 overflow-hidden">
+          <div className="flex gap-20 animate-marquee whitespace-nowrap opacity-40 hover:opacity-100 transition-opacity duration-500">
+            {['NIKE', 'ADIDAS', 'APPLE', 'SAMSUNG', 'SONY', 'GUCCI', 'ZARA', 'NIKE', 'ADIDAS', 'APPLE'].map((brand, i) => (
+              <span key={i} className="text-4xl font-black font-display text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20 tracking-wider hover:text-white transition-colors cursor-default">
+                {brand}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* AI RECOMMENDATIONS */}
+        {recommendations.length > 0 && (
+          <section className="py-24 bg-white relative overflow-hidden">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="flex flex-col md:flex-row justify-between items-end mb-16">
+                <div>
+                  <span className="text-primary-600 font-bold tracking-widest uppercase text-sm mb-2 block">Personalized For You</span>
+                  <h2 className="text-4xl md:text-5xl font-bold font-display text-slate-900">AI Picks <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-secondary-600">Just For You</span></h2>
+                </div>
+                <div className="hidden md:flex gap-2">
+                  {/* Custom Navigation buttons could go here */}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                {recommendations.map((rec, i) => (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                    key={rec._id || rec.product_id}
+                    whileHover={{ y: -10 }}
+                    className="group"
+                  >
+                    <div className="relative aspect-[3/4] mb-4 overflow-hidden rounded-3xl bg-slate-100 shadow-md group-hover:shadow-2xl transition-all duration-500">
+                      <img
+                        src={rec.image || 'https://placehold.co/400x500?text=No+Image'}
+                        alt={rec.name}
+                        onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/400x500?text=Product'; }}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      />
+                      <div className="absolute top-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-full text-xs font-bold text-slate-900 shadow-sm">
+                        {rec.reason || 'Best Match'}
+                      </div>
+
+                      {/* Quick Add Button */}
+                      <button
+                        onClick={() => navigate(`/products/${rec.product_id}`)}
+                        className="absolute bottom-4 right-4 bg-slate-900 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg translate-y-20 group-hover:translate-y-0 transition-transform duration-300 hover:bg-primary-600"
+                      >
+                        <FaArrowRight />
+                      </button>
+                    </div>
+                    <h3 className="text-lg font-bold text-slate-900 mb-1">{rec.name}</h3>
+                    <p className="text-primary-600 font-medium">${rec.price}</p>
+                  </motion.div>
+                ))}
+              </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {categories.map((category) => (
-                <Link key={category.name} to={`/category/${category.name.toLowerCase()}`} className="group relative rounded-xl overflow-hidden shadow-lg">
-                  <img src={category.image} alt={category.name} className="w-full h-48 object-cover group-hover:scale-110 transition-transform duration-300" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4">
-                    <h3 className="text-white text-xl font-bold">{category.name}</h3>
-                    <p className="text-gray-300 text-sm">{category.count} Products</p>
+          </section>
+        )}
+
+        {/* FEATURED CATEGORIES - BENTO GRID */}
+        <section className="py-24 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <h2 className="text-4xl font-bold font-display text-slate-900 mb-12 text-center">Curated Collections</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[300px]">
+              {categories.map((cat, idx) => (
+                <Link
+                  key={idx}
+                  to={`/category/${cat.name.toLowerCase()}`}
+                  className={`group relative rounded-[2rem] overflow-hidden ${idx === 0 || idx === 3 ? 'md:col-span-2' : ''} ${idx === 1 ? 'md:row-span-2' : ''}`}
+                >
+                  <img src={cat.image} alt={cat.name} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <div className={`absolute inset-0 bg-gradient-to-t ${cat.color} opacity-20 mix-blend-multiply transition-opacity duration-300 group-hover:opacity-40`}></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+
+                  <div className="absolute bottom-0 left-0 p-8 w-full">
+                    <h3 className="text-3xl font-bold text-white mb-2 translate-y-2 group-hover:translate-y-0 transition-transform duration-300">{cat.name}</h3>
+                    <div className="flex items-center justify-between opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-4 group-hover:translate-y-0 delay-75">
+                      <span className="text-white/80">{cat.count} Items</span>
+                      <span className="bg-white text-slate-900 w-10 h-10 rounded-full flex items-center justify-center"><FaArrowRight size={12} /></span>
+                    </div>
                   </div>
                 </Link>
               ))}
             </div>
-            <div className="text-center mt-10">
-              <Link to="/categories" className="inline-block border-2 border-gray-900 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-gray-900 hover:text-white transition-colors">
-                Browse All Categories →
-              </Link>
-            </div>
           </div>
         </section>
 
-        {/* Trending Products Section */}
-        <section className="py-20 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">🔥 Trending Now</h2>
-              <p className="text-xl text-gray-600">Don't miss out on these hot items</p>
-            </div>
-            {trendingProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No trending products available</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {trendingProducts.map((product) => (
-                  <div key={product._id} className="bg-white border rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow group">
-                    <div className="relative overflow-hidden">
-                      <img src={product.images?.[0]?.url || '/api/placeholder/300/300'} alt={product.name} className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" />
-                      {product.comparePrice && (
-                        <div className="absolute top-2 left-2 px-3 py-1 rounded-full text-xs font-bold text-white bg-red-500">
-                          SALE
-                        </div>
-                      )}
-                      <div className="absolute top-2 right-2 bg-yellow-400 text-black px-2 py-1 rounded text-sm font-semibold">
-                        ⭐ {product.ratings?.average || 4.5}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-gray-900 mb-2 truncate">{product.name}</h3>
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-xl font-bold text-blue-600">₹{product.basePrice}</span>
-                        {product.comparePrice && (
-                          <>
-                            <span className="text-sm text-gray-500 line-through">₹{product.comparePrice}</span>
-                            <span className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded">
-                              -{Math.round((1 - product.basePrice / product.comparePrice) * 100)}%
-                            </span>
-                          </>
-                        )}
-                      </div>
-                      <button
-                        onClick={() => handleAddToCart(product)}
-                        className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+        {/* LIFESTYLE / VIDEO SECTION */}
+        <section id="demo-video" className="py-24 bg-slate-900 text-white relative flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
           </div>
-        </section>
 
-        {/* Testimonials Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Customers Say</h2>
-              <p className="text-xl text-gray-600">Join thousands of satisfied customers</p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {testimonials.map((testimonial, index) => (
-                <div key={index} className="bg-white p-8 rounded-xl shadow-lg">
-                  <div className="flex text-yellow-400 mb-4">
-                    {'★'.repeat(testimonial.rating)}
-                  </div>
-                  <p className="text-gray-600 mb-6 italic">"{testimonial.text}"</p>
-                  <div className="flex items-center">
-                    <img src={testimonial.image} alt={testimonial.name} className="w-12 h-12 rounded-full object-cover mr-4" />
-                    <div>
-                      <h4 className="font-semibold text-gray-900">{testimonial.name}</h4>
-                      <p className="text-sm text-gray-500">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Brands Section */}
-        <section className="py-16 bg-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-bold text-gray-900">Trusted by Top Brands</h2>
-            </div>
-            <div className="flex flex-wrap justify-center items-center gap-12">
-              {brands.map((brand, index) => (
-                <div key={index} className="flex flex-col items-center text-gray-400 hover:text-gray-600 transition-colors cursor-pointer">
-                  <span className="text-4xl mb-2">{brand.logo}</span>
-                  <span className="text-sm font-medium">{brand.name}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Newsletter Section */}
-        <section className="py-20 bg-gradient-to-r from-purple-600 to-blue-600 text-white">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-4">Stay Updated</h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Subscribe to our newsletter and get 10% off your first order plus exclusive deals!
-            </p>
-            <form onSubmit={handleNewsletterSubmit} className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                className="flex-1 px-6 py-3 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                required
-              />
-              <button type="submit" className="bg-yellow-400 text-gray-900 px-8 py-3 rounded-lg font-semibold hover:bg-yellow-300 transition-colors">
-                Subscribe
-              </button>
-            </form>
-            <p className="text-sm mt-4 text-white/70">No spam, unsubscribe anytime.</p>
-          </div>
-        </section>
-
-        {/* Stats Section */}
-        <section className="py-16 bg-gray-900 text-white">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-              <div>
-                <p className="text-4xl font-bold text-blue-400">50K+</p>
-                <p className="text-gray-400 mt-2">Happy Customers</p>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-green-400">10K+</p>
-                <p className="text-gray-400 mt-2">Products</p>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-yellow-400">99%</p>
-                <p className="text-gray-400 mt-2">Satisfaction Rate</p>
-              </div>
-              <div>
-                <p className="text-4xl font-bold text-purple-400">24/7</p>
-                <p className="text-gray-400 mt-2">Support</p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* CTA Section */}
-        <section className="py-20 bg-blue-600 text-white">
-          <div className="max-w-7xl mx-auto px-4 text-center">
-            <h2 className="text-4xl font-bold mb-6">
-              Ready to Get Started?
+          <div className="max-w-5xl mx-auto px-4 text-center relative z-10">
+            <span className="inline-block py-1 px-3 rounded-full bg-white/10 border border-white/10 text-sm font-medium mb-8 backdrop-blur-sm">
+              Next Level Features
+            </span>
+            <h2 className="text-5xl md:text-7xl font-bold font-display mb-10 leading-tight">
+              Shopping Reimagined <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">For The Future</span>
             </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto">
-              Join thousands of users who trust NEXORA for their premium shopping experience.
-            </p>
-            <Link to="/register" className="bg-white text-blue-600 px-8 py-4 rounded-lg font-semibold text-lg hover:bg-gray-100 transition-colors inline-block">
-              Start Your Journey
-            </Link>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left mt-16">
+              {[
+                { title: 'Real-Time Auctions', desc: 'Bid on exclusive items with our WebSocket powered engine.' },
+                { title: 'AI Assistant', desc: 'Get 24/7 support and recommendations from our Python-based AI.' },
+                { title: 'Secure Payments', desc: 'Seamless transactions with Stripe and Crypto integration.' },
+              ].map((feat, i) => (
+                <div key={i} className="bg-white/5 border border-white/5 p-8 rounded-3xl hover:bg-white/10 transition-colors backdrop-blur-sm">
+                  <h3 className="text-xl font-bold mb-3">{feat.title}</h3>
+                  <p className="text-slate-400 leading-relaxed">{feat.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
-      </div >
+
+        {/* NEWSLETTER - UNIQUE DESIGN */}
+        <section className="py-24 bg-white relative">
+          <div className="max-w-4xl mx-auto px-4 relative z-10">
+            <div className="bg-primary-600 rounded-[3rem] p-12 md:p-20 text-center text-white relative overflow-hidden shadow-2xl shadow-primary-500/30">
+              <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
+              <div className="absolute -top-24 -right-24 w-64 h-64 rounded-full bg-secondary-500 blur-3xl opacity-50"></div>
+              <div className="absolute -bottom-24 -left-24 w-64 h-64 rounded-full bg-blue-500 blur-3xl opacity-50"></div>
+
+              <div className="relative z-10">
+                <h2 className="text-4xl md:text-5xl font-bold font-display mb-6">Stay in the Loop</h2>
+                <p className="text-primary-100 text-lg mb-10 max-w-lg mx-auto">Join the VIP list to get early access to drops and exclusive content.</p>
+
+                <form onSubmit={handleNewsletterSubmit} className="max-w-md mx-auto relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-8 py-5 rounded-full bg-white text-slate-900 border-none focus:ring-4 focus:ring-primary-400/50 shadow-lg placeholder:text-slate-400 outline-none"
+                    required
+                  />
+                  <button type="submit" className="absolute right-2 top-2 bottom-2 bg-slate-900 text-white px-6 rounded-full font-bold hover:bg-slate-800 transition-colors">
+                    Join
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
     </>
   )
 }

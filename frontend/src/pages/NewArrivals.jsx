@@ -7,7 +7,7 @@ import toast from 'react-hot-toast'
 
 const NewArrivals = () => {
   const dispatch = useDispatch()
-  
+
   const [products] = useState([
     {
       id: 201,
@@ -124,7 +124,12 @@ const NewArrivals = () => {
               <div key={product.id} className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-lg transition-shadow group">
                 <div className="relative">
                   <Link to={`/products/${product.id}`}>
-                    <img src={product.image} alt={product.name} className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300" />
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      onError={(e) => { e.target.src = 'https://placehold.co/600x400?text=New+Arrival'; e.target.onerror = null; }}
+                      className="w-full h-56 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
                   </Link>
                   <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-medium">
                     NEW

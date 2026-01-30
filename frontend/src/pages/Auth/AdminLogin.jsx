@@ -59,27 +59,33 @@ const AdminLogin = () => {
         <title>Admin Login - NEXORA</title>
       </Helmet>
 
-      <div className="min-h-screen bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full">
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary-600/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-secondary-600/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-md w-full relative z-10">
           {/* Logo & Title */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full mb-4 shadow-lg">
-              <FiShield className="w-10 h-10 text-blue-600" />
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mb-6 shadow-2xl rotate-3 hover:rotate-0 transition-all duration-300">
+              <FiShield className="w-10 h-10 text-primary-400" />
             </div>
-            <h2 className="text-3xl font-bold text-white mb-2">Admin Portal</h2>
-            <p className="text-blue-200">Secure access for administrators only</p>
+            <h2 className="text-4xl font-bold font-display text-white mb-2 tracking-tight">Admin Portal</h2>
+            <p className="text-gray-400 text-lg">Secure access for administrators</p>
           </div>
 
           {/* Login Form */}
-          <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2 font-display">
                   Email Address
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiMail className="h-5 w-5 text-gray-400" />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <FiMail className="h-5 w-5 text-gray-400 group-focus-within:text-primary-400 transition-colors" />
                   </div>
                   <input
                     type="email"
@@ -87,19 +93,19 @@ const AdminLogin = () => {
                     value={formData.email}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full pl-11 pr-4 py-4 bg-dark-900/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-gray-500 transition-all outline-none"
                     placeholder="admin@nexora.com"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-gray-300 mb-2 font-display">
                   Password
                 </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <FiLock className="h-5 w-5 text-gray-400" />
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <FiLock className="h-5 w-5 text-gray-400 group-focus-within:text-primary-400 transition-colors" />
                   </div>
                   <input
                     type="password"
@@ -107,7 +113,7 @@ const AdminLogin = () => {
                     value={formData.password}
                     onChange={handleChange}
                     required
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="block w-full pl-11 pr-4 py-4 bg-dark-900/50 border border-gray-700 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent text-white placeholder-gray-500 transition-all outline-none"
                     placeholder="••••••••"
                   />
                 </div>
@@ -116,34 +122,33 @@ const AdminLogin = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 px-4 rounded-xl hover:from-primary-500 hover:to-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-dark-950 font-bold tracking-wide transition-all transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg shadow-primary-900/20"
               >
                 {loading ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                    Signing in...
+                    Authenticating...
                   </div>
                 ) : (
-                  'Sign In to Admin Panel'
+                  'Access Dashboard'
                 )}
               </button>
             </form>
 
-            <div className="mt-6 text-center">
+            <div className="mt-8 text-center border-t border-white/5 pt-6">
               <Link
                 to="/"
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="text-sm text-gray-400 hover:text-white font-medium transition-colors inline-flex items-center gap-2"
               >
-                ← Back to Main Site
+                <span>←</span> Back to Store
               </Link>
             </div>
           </div>
 
           {/* Security Notice */}
-          <div className="mt-6 bg-blue-900 bg-opacity-50 backdrop-blur-sm rounded-lg p-4 text-center">
-            <p className="text-sm text-blue-100">
-              🔒 This is a secure admin area. All activities are logged.
-            </p>
+          <div className="mt-8 flex items-center justify-center gap-2 text-xs text-gray-500 opacity-60">
+            <FiShield className="w-3 h-3" />
+            <span>256-bit SSL Encrypted Connection</span>
           </div>
         </div>
       </div>

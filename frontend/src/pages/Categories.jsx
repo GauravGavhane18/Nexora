@@ -3,12 +3,12 @@ import { Helmet } from 'react-helmet-async'
 
 const Categories = () => {
   const categories = [
-    { 
-      id: 1, 
-      name: 'Electronics', 
-      slug: 'electronics', 
-      image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop', 
-      count: 245, 
+    {
+      id: 1,
+      name: 'Electronics',
+      slug: 'electronics',
+      image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&h=300&fit=crop',
+      count: 245,
       description: 'Latest gadgets and tech devices',
       products: [
         { id: 101, name: 'iPhone 15 Pro', price: 999.99, image: 'https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=200&h=200&fit=crop' },
@@ -18,12 +18,12 @@ const Categories = () => {
         { id: 105, name: 'Dell XPS 13', price: 1099.99, image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=200&h=200&fit=crop' }
       ]
     },
-    { 
-      id: 2, 
-      name: 'Food & Grocery', 
-      slug: 'food-grocery', 
-      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop', 
-      count: 1250, 
+    {
+      id: 2,
+      name: 'Food & Grocery',
+      slug: 'food-grocery',
+      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=300&fit=crop',
+      count: 1250,
       description: 'Fresh food and daily essentials',
       products: [
         { id: 201, name: 'Organic Bananas (2 lbs)', price: 3.99, image: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=200&h=200&fit=crop' },
@@ -33,12 +33,12 @@ const Categories = () => {
         { id: 205, name: 'Almond Milk (64 oz)', price: 4.99, image: 'https://images.unsplash.com/photo-1563636619-e9143da7973b?w=200&h=200&fit=crop' }
       ]
     },
-    { 
-      id: 3, 
-      name: 'Fashion & Clothing', 
-      slug: 'fashion-clothing', 
-      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop', 
-      count: 890, 
+    {
+      id: 3,
+      name: 'Fashion & Clothing',
+      slug: 'fashion-clothing',
+      image: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400&h=300&fit=crop',
+      count: 890,
       description: 'Trendy clothes and accessories',
       products: [
         { id: 301, name: 'Nike Air Max 270', price: 149.99, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=200&h=200&fit=crop' },
@@ -48,12 +48,12 @@ const Categories = () => {
         { id: 305, name: 'Leather Jacket', price: 299.99, image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=200&h=200&fit=crop' }
       ]
     },
-    { 
-      id: 4, 
-      name: 'Home & Garden', 
-      slug: 'home-garden', 
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop', 
-      count: 567, 
+    {
+      id: 4,
+      name: 'Home & Garden',
+      slug: 'home-garden',
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop',
+      count: 567,
       description: 'Furniture and home decor',
       products: [
         { id: 401, name: 'Ergonomic Office Chair', price: 299.99, image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=200&h=200&fit=crop' },
@@ -63,12 +63,12 @@ const Categories = () => {
         { id: 405, name: 'Indoor Plant Collection', price: 89.99, image: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=200&h=200&fit=crop' }
       ]
     },
-    { 
-      id: 5, 
-      name: 'Sports & Fitness', 
-      slug: 'sports-fitness', 
-      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop', 
-      count: 423, 
+    {
+      id: 5,
+      name: 'Sports & Fitness',
+      slug: 'sports-fitness',
+      image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop',
+      count: 423,
       description: 'Workout gear and sports equipment',
       products: [
         { id: 501, name: 'Adjustable Dumbbells', price: 199.99, image: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=200&h=200&fit=crop' },
@@ -78,12 +78,12 @@ const Categories = () => {
         { id: 505, name: 'Fitness Tracker Watch', price: 149.99, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&h=200&fit=crop' }
       ]
     },
-    { 
-      id: 6, 
-      name: 'Books & Media', 
-      slug: 'books-media', 
-      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop', 
-      count: 789, 
+    {
+      id: 6,
+      name: 'Books & Media',
+      slug: 'books-media',
+      image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=400&h=300&fit=crop',
+      count: 789,
       description: 'Books, movies, and digital content',
       products: [
         { id: 601, name: 'The Psychology of Money', price: 16.99, image: 'https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=200&h=200&fit=crop' },
@@ -139,7 +139,7 @@ const Categories = () => {
                       View All <span className="ml-1">→</span>
                     </Link>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                     {category.products.map((product) => (
                       <div key={product.id} className="group cursor-pointer">
@@ -147,6 +147,7 @@ const Categories = () => {
                           <img
                             src={product.image}
                             alt={product.name}
+                            onError={(e) => { e.target.src = 'https://placehold.co/200?text=Product'; e.target.onerror = null; }}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                           />
                         </div>

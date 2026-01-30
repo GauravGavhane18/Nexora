@@ -19,7 +19,7 @@ class RecommendationEngine:
         # Load Products
         products_cursor = self.db.products.find(
             {"isActive": True, "status": "published"}, 
-            {"_id": 1, "name": 1, "description": 1, "tags": 1, "category": 1, "images": 1, "basePrice": 1, "ratings": 1}
+            {"_id": 1, "name": 1, "description": 1, "tags": 1, "category": 1, "images": 1, "basePrice": 1, "ratings": 1, "slug": 1}
         )
         products = list(products_cursor)
         if not products:
@@ -87,6 +87,7 @@ class RecommendationEngine:
                 "name": product['name'],
                 "price": product['basePrice'],
                 "image": product['images'][0]['url'] if product['images'] else None,
+                "slug": product.get('slug'),
                 "reason": f"Similar to {self.products_df.loc[product_id]['name']}",
                 "score": float(cosine_sim[i])
             })
@@ -129,6 +130,7 @@ class RecommendationEngine:
                 "name": product['name'],
                 "price": product['basePrice'],
                 "image": product['images'][0]['url'] if product['images'] else None,
+                "slug": product.get('slug'),
                 "reason": "Users with similar taste bought this",
                 "score": float(count) # Normalize later if needed
             })
@@ -164,6 +166,7 @@ class RecommendationEngine:
                 "name": row['name'],
                 "price": row['basePrice'],
                 "image": row['images'][0]['url'] if row['images'] else None,
+                "slug": row.get('slug'),
                 "reason": "Highly rated by our community",
                 "score": 1.0
             })

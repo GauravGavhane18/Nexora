@@ -15,6 +15,16 @@ const AdminUsers = () => {
     search: ''
   });
 
+  const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setFilters(prev => ({ ...prev, search: searchTerm }));
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
+
   useEffect(() => {
     fetchUsers();
   }, [filters]);
@@ -96,8 +106,8 @@ const AdminUsers = () => {
               <input
                 type="text"
                 placeholder="Search by name or email..."
-                value={filters.search}
-                onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
               />
             </div>

@@ -544,7 +544,7 @@ export const getCategories = async (req, res) => {
     });
   }
 };
-
+//why this is comment out : ans-> because
 // @desc    Create category
 // @route   POST /api/v1/admin/categories
 // @access  Private (Admin)
